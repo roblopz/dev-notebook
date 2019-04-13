@@ -5,32 +5,34 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+// Other
+const appPaths = require('./appPaths');
 
 module.exports = {
   mode: 'development',
   target: 'web',
-  entry: [
-    path.resolve(__dirname, '../src/index.tsx')
-  ],
+  entry: [path.join(appPaths.webBase, 'index.tsx')],
   devtool: 'inline-source-map',
   output: {
-    // Virtual path, actually
-    path: path.resolve(__dirname, 'dist'),
+    path: appPaths.webOutput,
     filename: '[name].bundle.js',
     publicPath: '/'
   },
   resolve: {
-    modules: [path.resolve(__dirname, '../node_modules')],
+    modules: [appPaths.node_modules],
     extensions: ['.ts', '.tsx', '.js', '.json', '.jsx'],
     alias: {
-      'react-dom': '@hot-loader/react-dom'
+      'react-dom': '@hot-loader/react-dom',
+      'roboto-fonts': ''
     },
     plugins: [
-      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, '../tsconfig.json') })
+      new TsconfigPathsPlugin({ configFile: appPaths.tsConfig })
     ]
   },
   devServer: {
-    contentBase: path.join(__dirname, '../src'),
+    contentBase: appPaths.webBase,
     port: 7001,
     hot: true,
     hotOnly: false,
@@ -41,7 +43,8 @@ module.exports = {
       'process.env.NODE_ENV': JSON.stringify('development')
     }),
     new HtmlWebpackPlugin({     // Create HTML file that includes references to bundled CSS and JS.
-      template: path.resolve(__dirname, '../src/index.ejs'),
+      template: path.join(appPaths.webBase, 'index.ejs'),
+      favicon: path.join(appPaths.webBase, 'favicon.ico'),
       filename: 'index.html',
       minify: { removeComments: true, collapseWhitespace: true },
       inject: true,
@@ -51,23 +54,26 @@ module.exports = {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new ForkTsCheckerWebpackPlugin({
-      tsconfig: path.resolve(__dirname, '../tsconfig.json'),
-      tslint: path.resolve(__dirname, '../tslint.json'),
+      tsconfig: appPaths.tsconfig,
+      tslint: appPaths.tsLint,
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+      chunkFilename: '[id].css'
     })
   ],
   module: {
     rules: [
       { test: /\.(js|jsx|ts|tsx)$/, exclude: /node_modules/, use: ['babel-loader'] },
       {
-        test: /\.(s*)css$/,
-        exclude: /node_modules/,
+        test: /\.(sa|sc|c)ss$/,
         use: [
-          { loader: 'style-loader' },
+          { loader: MiniCssExtractPlugin.loader, options: { hmr: true, reloadAll: true } },
           { loader: 'css-loader', options: { sourceMap: true } },
           { loader: 'postcss-loader', options: { plugins: () => [require('autoprefixer')], sourceMap: true } },
           { loader: 'resolve-url-loader', options: { sourceMap: true, debug: true } },
-          { loader: 'sass-loader', options: { sourceMap: true, includePaths: [path.resolve(__dirname, '../node_modules')] } },
-        ]
+          { loader: 'sass-loader', options: { sourceMap: true, includePaths: [appPaths.node_modules] } },
+        ],
       },
       {
         test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/, /\.ico$/],
@@ -80,6 +86,10 @@ module.exports = {
       {
         test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
         use: [{ loader: 'url-loader', options: { limit: 10000, mimetype: 'image/svg+xml' } }]
+      },
+      {
+        test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
+        use: [{ loader: 'file-loader', options: { name: '[name].[ext]', outputPath: 'fonts/' } }]
       }
     ]
   }
