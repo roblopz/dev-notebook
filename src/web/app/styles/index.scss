@@ -1,5 +1,26 @@
+//
+// Fonts and icons
+//
 @import './fonts/index.scss';
 
-body {
-  font-family: 'Roboto', Helvetica, Arial, sans-serif
-}
+//
+// Thrid party
+//
+
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+// -> Override bootstrap breakpoints to material values
+$grid-breakpoints: (
+  xs: 0,
+  sm: 600px,
+  md: 960px,
+  lg: 1280px,
+  xl: 1920px
+);
+
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/utilities";
+
+@import "~draft-js/dist/Draft.css";

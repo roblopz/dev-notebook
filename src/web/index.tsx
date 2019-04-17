@@ -11,13 +11,13 @@ import { store } from './app/redux/store';
 import { MainTheme } from './app/styles/material/theme';
 
 // Styles
-import './app/common/styles/index.scss';
+import './app/styles/index.scss';
 
 // Components
 import AppIndex from './app/appIndex';
 
 const Root = () => (
-  <ReactReduxProvider store={s}>
+  <ReactReduxProvider store={store}>
     <ReduxHookContext.Provider value={store}>
       <ThemeProvider theme={MainTheme}>
         <BrowserRouter>
