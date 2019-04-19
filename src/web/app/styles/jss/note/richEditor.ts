@@ -1,9 +1,12 @@
 
-const getStyle = (theme: any) => ({
+export const getRichEditorStyle = (theme: any) => ({
   editorWrapper: {
     border: '1px solid #d1d1d1',
     borderRadius: '4px'
-  },
+  }
+});
+
+export const getRichEditorToolbarStyle = (theme: any) => ({
   toolbar: {
     backgroundColor: '#f8f8f8',
     borderBottom: '1px solid #d1d1d1',
@@ -31,5 +34,3 @@ const getStyle = (theme: any) => ({
     margin: '0 5px'
   }
 });
-
-export default getStyle;

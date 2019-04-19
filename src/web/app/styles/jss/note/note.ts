@@ -12,9 +12,6 @@ const getStyle = (theme: any) => ({
   titleTextFieldLabel: optionalSmTextFieldStyle.label,
   headerIconOverride: {
     marginTop: '4px !important'
-  },
-  editorBlock: {
-    marginTop: '.75rem'
   }
 });
 

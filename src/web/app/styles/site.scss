@@ -1,4 +1,30 @@
 
-body {
-  font-family: 'Roboto', Helvetica, Arial, sans-serif
+.divider {
+  text-align: center;
+  position: relative;  
+  line-height: 0;
+
+  &::after {
+    content: "";
+    width: 100%;
+    background-color: transparent;
+    display: block;
+    height: 1px;
+    border-top: 1px solid #e7e7e7;
+    position: absolute;
+    top: 50%;
+    margin-top: -1px;
+    z-index: 1;
+  }
+
+  span {
+    line-height: 1;
+    font-size: 12px;
+    color: #767676;    
+    z-index: 2;
+    position: relative;
+    display: inline-block;
+    background-color: #fff;
+    padding: 0 8px 0 7px;
+  }
 }
