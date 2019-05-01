@@ -7,7 +7,7 @@ export type UseReduxStateMapStateToProps<TReduxState, TRes> = (state: TReduxStat
 
 export const useReduxState = <TReduxState, TRes>(
   mapStateToProps: UseReduxStateMapStateToProps<TReduxState, TRes>,
-  inputs = []
+  inputs: any[] = []
 ) => useMappedState(useCallback(mapStateToProps, inputs));
 
 export function useReduxDispatch() {

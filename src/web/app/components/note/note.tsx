@@ -1,16 +1,17 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
+import DeleteIcon from '@material-ui/icons/DeleteRounded';
 import { Formik } from 'formik';
 
 import { mapMuiFormikdProps } from '../../lib/muiFormik';
-import getStyle from '../../styles/jss/note/note';
+import { getStyles } from '../../styles/jss/note/note';
 
 // Components
-import HeaderIcons from '../common/headerIcons';
 import RichEditor from './richEditor';
+import CodeEditor from './codeEditor';
 
 export interface INoteData {
   header: string;
@@ -20,7 +21,7 @@ export interface INoteData {
 }
 
 export default function Note() {
-  const classes = makeStyles(getStyle)();
+  const classes = makeStyles(getStyles)();
 
   const getInitialValues = useCallback((): INoteData => ({
     header: '',
@@ -32,11 +33,10 @@ export default function Note() {
   return (
     <Paper className={classes.root}>
       {/* Generalities */}
-      <HeaderIcons className={classes.headerIconOverride} />      
       <Formik initialValues={getInitialValues()} onSubmit={(...args) => console.log(args)}>
         {({ values, handleChange, handleSubmit, errors, touched }) => (
           <form onSubmit={handleSubmit}>
-            <TextField label="Note header" className="mb-2" fullWidth
+            <TextField label="Note header" className="mt-0 mb-2" fullWidth margin="dense"
               {...mapMuiFormikdProps('header', values, errors, touched)} onChange={handleChange} />
 
             <TextField className="mt-1" label="Subheader"
@@ -47,23 +47,18 @@ export default function Note() {
           </form>
         )}
       </Formik>
-      
-      {/* Rich text editor */}
-      <Typography variant="button" className="text-capitalize mb-1 mt-3" component="label" color="textSecondary">
-        Content
-      </Typography>
-      <RichEditor />
 
-      <div className="mt-3 mb-2 px-3">
+      {/* Rich text editor */}
+      <RichEditor className="mt-3"/>
+
+      <div className={classes.andOrDivider + ' px-3'}>
         <div className="divider">
           <Typography variant="button">AND / OR</Typography>
-        </div>   
+        </div>
       </div>
 
       {/* Code editor */}
-      <Typography variant="button" className="text-capitalize mb-1" component="label" color="textSecondary">
-        Code
-      </Typography>
+      <CodeEditor className="mt-2" />
     </Paper>
   );
 }

@@ -53,7 +53,6 @@ module.exports = {
         isDevelopment: true
       }
     }),
-    new webpack.HotModuleReplacementPlugin(),
     new ForkTsCheckerWebpackPlugin({
       tsconfig: appPaths.tsconfig,
       tslint: appPaths.tsLint,
@@ -64,7 +63,8 @@ module.exports = {
     }),
     new MonacoWebpackPlugin({
       // available options are documented at https://github.com/Microsoft/monaco-editor-webpack-plugin#options      
-    })
+    }),
+    new webpack.HotModuleReplacementPlugin()
   ],
   module: {
     rules: [

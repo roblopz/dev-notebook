@@ -1,12 +1,12 @@
 import React, { ReactElement } from 'react';
 import PropTypes from 'prop-types';
 
-interface RenderPropsWrapProps {
+export interface IRenderPropsWrapProps {
   children: (...props: any[]) => ReactElement;
   other?: any[];
 }
 
-function RenderPropsWrap({ children, ...other }: RenderPropsWrapProps) {
+function RenderPropsWrap({ children, ...other }: IRenderPropsWrapProps) {
   return (
     <React.Fragment>{children(other)}</React.Fragment>
   );

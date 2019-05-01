@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint:recommended", "tslint-react", "tslint-react-hooks"],
+  "extends": ["tslint:recommended", "tslint-react", "tslint-react-hooks"],  
   "linterOptions": {
     "exclude": ["node_modules"]
   },
@@ -16,14 +16,16 @@
     "jsx-alignment": false,
     "jsx-no-multiline-js": false,
     "jsx-boolean-value": false,
+    "jsx-no-lambda": false,
     "object-literal-key-quotes": false,
     "only-arrow-functions": false,
     "interface-name": false,
-    "jsx-no-lambda": false,
     "arrow-parens": false,
     "curly": false,
     "interface-over-type-literal": false,
-    "semicolon": [true, "always"]
+    "semicolon": [true, "always"],
+    "no-trailing-whitespace": [true, "ignore-comments", "ignore-blank-lines"],
+    "no-conditional-assignment": false
   },
   "rules": {
     "indent": [true, "spaces", 2],
@@ -38,13 +40,14 @@
     "jsx-alignment": false,
     "jsx-no-multiline-js": false,
     "jsx-boolean-value": false,
+    "jsx-no-lambda": false,
     "object-literal-key-quotes": false,
     "only-arrow-functions": false,
-    "interface-name": false,
-    "jsx-no-lambda": false,
     "arrow-parens": false,
     "curly": false,
     "interface-over-type-literal": false,
-    "semicolon": [true, "always"]
+    "semicolon": [true, "always"],
+    "no-trailing-whitespace": [true, "ignore-comments", "ignore-blank-lines"],
+    "no-conditional-assignment": false
   }
 }

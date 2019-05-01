@@ -1,9 +1,11 @@
+import { noteTitleIconStyle } from './note';
 
 export const getRichEditorStyle = (theme: any) => ({
   editorWrapper: {
     border: '1px solid #d1d1d1',
     borderRadius: '4px'
-  }
+  },
+  noteTitleIcon: noteTitleIconStyle
 });
 
 export const getRichEditorToolbarStyle = (theme: any) => ({
@@ -18,6 +20,7 @@ export const getRichEditorToolbarStyle = (theme: any) => ({
     display: 'inline-block',
     padding: '3px 5px',
     cursor: 'pointer',
+    color: 'darkslategrey',
     '&:hover': {
       background: '#e5e5e5',
       border: '1px #bcbcbc solid',
@@ -29,8 +32,12 @@ export const getRichEditorToolbarStyle = (theme: any) => ({
       padding: '2px 4px'
     }
   },
+  colorPickerPopper: {
+    zIndex: 1000,
+    top: '8px !important'
+  },
   toolbarSeparator: {
-    cursor: 'default',    
+    cursor: 'default',
     margin: '0 5px'
   }
 });
