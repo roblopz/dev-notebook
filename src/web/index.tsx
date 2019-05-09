@@ -7,7 +7,7 @@ import { ThemeProvider } from '@material-ui/styles';
 import { BrowserRouter } from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
-import { store } from './app/redux/store';
+import { store } from './app/redux/store/configureStore';
 import { MainTheme } from './app/styles/material/theme';
 
 // Styles

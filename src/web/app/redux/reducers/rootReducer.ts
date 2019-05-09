@@ -1,3 +1,8 @@
 import { combineReducers } from 'redux';
 
-export default combineReducers({ });
+import { IAppState } from '../store/definitions';
+import { currentPageReducer } from '../reducers/currentPageReducer';
+
+export default combineReducers<Partial<IAppState>>({
+  currentPage: currentPageReducer
+});

@@ -6,6 +6,7 @@ export const noteTitleIconStyle = {
 
 export const getStyles = (theme: any) => ({
   root: {
+    margin: theme.spacing.unit * 2,
     padding: `${theme.spacing.unit}px ${theme.spacing.unit * 2}px`,
     position: 'relative' as 'relative',
     border: '1px solid #eee',
@@ -18,6 +19,12 @@ export const getStyles = (theme: any) => ({
   },
   andOrDivider: {
     marginTop: 25
+  },
+  noteOptionsIcon: {
+    padding: 5,
+    position: 'absolute' as 'absolute',
+    right: theme.spacing.unit,
+    zIndex: theme.zIndex.mobileStepper
   }
 });
 

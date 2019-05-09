@@ -7,6 +7,7 @@ export const getStyles = (theme: any) => {
       display: 'flex',
       flexDirection: 'column' as 'column',
       position: 'relative' as 'relative',
+      maxHeight: 'calc(100vh - 50px)'
     },
     pageTitle: {
       display: 'flex',
@@ -28,12 +29,14 @@ export const getStyles = (theme: any) => {
       fontSize: 16
     },
     pageInfoSection: {
+      maxHeight: '100%',
       padding: `0 ${pageInfoLeftPadding}px ${theme.spacing.unit}px`,
-      // width: '100%',
       width: '25%',
       minWidth: 160,
       maxWidth: 300,
-      borderRight: '1px solid rgba(0, 0, 0, 0.12)'
+      borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+      overflow: 'hidden',
+      overflowY: 'auto' as 'auto'
     },
     pageInfoForm: {
       display: 'flex',
@@ -43,9 +46,8 @@ export const getStyles = (theme: any) => {
     },
     pageInfoFooter: {
       display: 'flex',
-      flexGrow: 1,
       alignItems: 'flex-end',
-      marginTop: '.5rem'
+      margin: '1rem 0'
     },
     pageOptionBtns: {
       display: 'flex',
@@ -53,15 +55,28 @@ export const getStyles = (theme: any) => {
     },
     saveBtn: {
       marginRight: theme.spacing.unit,
-      flexGrow: '1'
+      flexGrow: 1
     },
     optionsBtn: {
       padding: 5
     },
     notesSection: {
       flexGrow: 1,
-      padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 4}px`,
-      backgroundColor: theme.palette.grey[100]
+      maxHeight: '100%',
+      backgroundColor: theme.palette.grey[100],
+      overflow: 'hidden',
+      overflowY: 'auto' as 'auto'
+    },
+    addNoteIcon: {
+      position: 'absolute' as 'absolute',
+      float: 'right' as 'right',
+      bottom: theme.spacing.unit,
+      right: theme.spacing.unit
+    },
+    notebookAddMenuItem: {
+      padding: '4px 16px',
+      fontWeight: 500,
+      fontStyle: 'italic',
     }
   };
 };

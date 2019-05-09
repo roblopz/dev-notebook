@@ -44,7 +44,8 @@ function CodeEditor({ className }: ICodeEditorProps) {
         </div>
       </div>
 
-      <ResizableBlock className="position-relative" axis="y" limits={{ heightMin: 100, heightMax: 700 }}>
+      <ResizableBlock className="position-relative" axis="y" resizerPosition="left"
+        limits={{ heightMin: 100, heightMax: 700 }}>
         {({ dimensionStyles }) => {
           return (
             <MonacoEditor ref={editorRef}

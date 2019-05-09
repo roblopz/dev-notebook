@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
+import PropTypes from 'prop-types';
+import classnames from 'classnames';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/styles';
 import Typography from '@material-ui/core/Typography';
-import DeleteIcon from '@material-ui/icons/DeleteRounded';
 import { Formik } from 'formik';
+import MoveVertIcon from '@material-ui/icons/MoreVertRounded';
 
 import { mapMuiFormikdProps } from '../../lib/muiFormik';
 import { getStyles } from '../../styles/jss/note/note';
@@ -12,6 +14,7 @@ import { getStyles } from '../../styles/jss/note/note';
 // Components
 import RichEditor from './richEditor';
 import CodeEditor from './codeEditor';
+import { IconButton } from '@material-ui/core';
 
 export interface INoteData {
   header: string;
@@ -20,7 +23,13 @@ export interface INoteData {
   snippet: string;
 }
 
-export default function Note() {
+export interface INoteProps {
+  className?: string;
+}
+
+function Note({
+  className
+}: INoteProps) {
   const classes = makeStyles(getStyles)();
 
   const getInitialValues = useCallback((): INoteData => ({
@@ -31,12 +40,15 @@ export default function Note() {
   }), []);
 
   return (
-    <Paper className={classes.root}>
+    <Paper className={classnames(classes.root, { [className]: !!className })}>
+      <IconButton className={classes.noteOptionsIcon} color="default">
+        <MoveVertIcon fontSize="small" />
+      </IconButton>
       {/* Generalities */}
       <Formik initialValues={getInitialValues()} onSubmit={(...args) => console.log(args)}>
         {({ values, handleChange, handleSubmit, errors, touched }) => (
           <form onSubmit={handleSubmit}>
-            <TextField label="Note header" className="mt-0 mb-2" fullWidth margin="dense"
+            <TextField label="Note header" className="mt-2 mb-2" fullWidth margin="dense"
               {...mapMuiFormikdProps('header', values, errors, touched)} onChange={handleChange} />
 
             <TextField className="mt-1" label="Subheader"
@@ -62,3 +74,9 @@ export default function Note() {
     </Paper>
   );
 }
+
+Note.propTypes = {
+  className: PropTypes.string
+};
+
+export default Note;

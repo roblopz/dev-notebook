@@ -10,6 +10,7 @@ export interface IResizableBlockProps {
   viewportMargins?: { bottom?: number, right?: number };
   axis: axis;
   className?: string;
+  resizerPosition?: 'right' | 'left';
 }
 
 let checkStyleEffectTimeout: NodeJS.Timeout;
@@ -19,7 +20,8 @@ function ResizableBlock({
   limits = { heightMin: 0, heightMax: 0, widthMin: 0, widthMax: 0 },
   viewportMargins = { bottom: 0, right: 0 },
   axis,
-  className
+  className,
+  resizerPosition = 'right'
 }: IResizableBlockProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -170,7 +172,9 @@ function ResizableBlock({
   return (
     <div ref={containerRef} style={dimensionStyles} className={classnames({ [className]: !!className })}>
       {children({ dimensionStyles })}
-      <div className={classnames('block-resizer', {
+      <div className={classnames({
+        'block-resizer-left': resizerPosition === 'left',
+        'block-resizer-right': resizerPosition === 'right',
         'cursor-nwse-resize': axis === "both",
         'cursor-ew-resize': axis === 'x',
         'cursor-ns-resize': axis === 'y'
@@ -192,11 +196,13 @@ ResizableBlock.propTypes = {
     right: PropTypes.number
   }).isRequired,
   axis: PropTypes.oneOf(['x', 'y', 'both']).isRequired,
-  className: PropTypes.string
+  className: PropTypes.string,
+  resizerPosition: PropTypes.oneOf(['right', 'left'])
 };
 
 ResizableBlock.defaultProps = {
-  viewportMargins: { top: 0, bottom: 0, left: 0, right: 0 }
+  viewportMargins: { top: 0, bottom: 0, left: 0, right: 0 },
+  resizerPosition: 'right'
 };
 
 export default ResizableBlock;
