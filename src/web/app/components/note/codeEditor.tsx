@@ -1,21 +1,26 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import ResizableBlock from '../common/resizableBlock';
 import MonacoEditor from 'react-monaco-editor';
 import * as monaco from 'monaco-editor';
 import { makeStyles } from '@material-ui/styles';
-import Typography from '@material-ui/core/Typography';
-import CodeIcon from '@material-ui/icons/CodeRounded';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
+import Collapse from '@material-ui/core/Collapse';
 
 import { getStyles } from '../../styles/jss/note/codeEditor';
+import { ISnippet } from '../../redux/store/definitions';
 
 export interface ICodeEditorProps {
+  onChange: (val: ISnippet) => void;
+  snippet: ISnippet;
   className?: string;
+  hide: boolean;
+  toggleHide: (hide: boolean) => void;
 }
 
-function CodeEditor({ className }: ICodeEditorProps) {
+function CodeEditor({ snippet, hide, toggleHide, onChange, className }: ICodeEditorProps) {
   const classes = makeStyles(getStyles)();
   const editorRef = useRef<MonacoEditor>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
 
   const availableLanguages = useMemo(() => {
     return monaco.languages.getLanguages().sort((a, b) => {
@@ -26,41 +31,42 @@ function CodeEditor({ className }: ICodeEditorProps) {
   return (
     <div {...{...(className && { className })}}>
       <div className="position-relative">
-        <Typography variant="subtitle2" className="font-weight-bold mb-2" component="label">
-          <CodeIcon fontSize="small" className={classes.noteTitleIcon} />
-          Code
-        </Typography>
-
-        <div className={classes.languagesSelect}>
-          <Typography variant="subtitle2" component="label" className="mx-2" color="textSecondary">
-            Language
-          </Typography>
-
-          <select onChange={(evt) => setSelectedLanguage(evt.target.value)} value={selectedLanguage}>
-            {availableLanguages.map(language => (
-              <option key={language.id} value={language.id}>{language.aliases[0]}</option>
-            ))}
-          </select>
-        </div>
+        <FormControlLabel control={
+          <Switch checked={!hide} color="primary"
+            onChange={evt => toggleHide(!evt.target.checked)}
+            classes={{ switchBase: classes.switchBase }} />
+          } label="Code" className={classes.switchLabelWrapper}
+          classes={{ label: classes.switchLabelText }} />
       </div>
 
-      <ResizableBlock className="position-relative" axis="y" resizerPosition="left"
-        limits={{ heightMin: 100, heightMax: 700 }}>
-        {({ dimensionStyles }) => {
-          return (
-            <MonacoEditor ref={editorRef}
-              language={selectedLanguage} theme="vs"
-              height={dimensionStyles.height || 100}
-              width={dimensionStyles.width || 0}
-              options={{
-                minimap: { enabled: false },
-                showUnused: false,
-                lineNumbersMinChars: 3,
-                scrollBeyondLastLine: false
-              }} />
-          );
-        }}
-      </ResizableBlock>
+      <Collapse in={!hide}>
+        <select className="my-2" value={snippet.language}
+          onChange={evt => onChange({ code: snippet.code, language: evt.target.value })}>
+          {availableLanguages.map(language => (
+            <option key={language.id} value={language.id}>{language.aliases[0]}</option>
+          ))}
+        </select>
+
+        <ResizableBlock className="position-relative" axis="y" resizerPosition="left"
+          limits={{ heightMin: 100, heightMax: 700 }}>
+          {({ dimensionStyles }) => {
+            return (
+              <MonacoEditor theme="vs" ref={editorRef}
+                value={snippet.code}
+                onChange={val => onChange({ code: val, language: snippet.language })}
+                language={snippet.language}
+                height={dimensionStyles.height || 100}
+                width={dimensionStyles.width || 0}
+                options={{
+                  minimap: { enabled: false },
+                  showUnused: false,
+                  lineNumbersMinChars: 3,
+                  scrollBeyondLastLine: false
+                }} />
+            );
+          }}
+        </ResizableBlock>
+      </Collapse>
     </div>
   );
 }

@@ -1,36 +1,36 @@
-import _get from 'lodash/get';
+import { getIn, FormikErrors, FormikTouched } from 'formik';
 
 export const mapMuiFormikdProps = <Values>(
   fieldName: string,
   values: Values,
-  errors: { [key: string]: any },
-  touched: { [key: string]: any }
+  errors: FormikErrors<Values>,
+  touched: FormikTouched<Values>
 ) => {
   const fieldError = getFieldError(fieldName, errors);
-  const isFieldTouched = _get(touched, fieldName);
+  const isFieldTouched = getIn(touched, fieldName);
   const hasError = !!fieldError && !!isFieldTouched;
 
   return {
-    value: _get(values, fieldName) || '',
+    value: getIn(values, fieldName) || '',
     name: fieldName,
     error: hasError,
     helperText: hasError ? fieldError : null
   };
 };
 
-export const isTouchedInvalid = (
+export const isTouchedInvalid = <Values>(
   fieldName: string,
-  errors: { [key: string]: string },
-  touched: { [key: string]: string }
-) =>
+  errors: FormikErrors<Values>,
+  touched: FormikTouched<Values>
+): boolean =>
   !!getFieldError(fieldName, errors) && !!isFieldTouched(fieldName, touched);
 
-export const getFieldError = (
+export const getFieldError = <Values>(
   fieldName: string,
-  errors: { [key: string]: string }
-) => _get(errors, fieldName);
+  errors: FormikErrors<Values>
+): string => getIn(errors, fieldName);
 
-export const isFieldTouched = (
+export const isFieldTouched = <Values>(
   fieldName: string,
-  touched: { [key: string]: string }
-) => _get(touched, fieldName);
+  touched: FormikTouched<Values>
+): boolean => getIn(touched, fieldName);

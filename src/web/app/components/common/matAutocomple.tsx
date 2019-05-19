@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import AsyncSelect, { Props as ReactSelectProps } from 'react-select/lib/Async';
-import deburr from 'lodash/deburr';
 import { makeStyles, useTheme } from '@material-ui/styles';
 import TextField, { TextFieldProps } from '@material-ui/core/TextField';
 import { ControlProps } from 'react-select/lib/components/Control';
@@ -15,48 +14,30 @@ import { PaperProps } from '@material-ui/core/Paper';
 
 import { getStyles } from '../../styles/jss/common/matTagSelect';
 
-export interface IOption {
+export interface IOption<T> {
   label: string;
-  value: string;
+  value: T;
 }
 
-export interface IMatAutocompleteProps extends ReactSelectProps<IOption> {
-  isAppendable?: boolean;
+export interface IMatAutocompleteProps<T> extends ReactSelectProps<IOption<T>> {
+  value?: Array<IOption<T>> | IOption<T>;
+  defaultValue?: Array<IOption<T>> | IOption<T>;
+  defaultOptions?: Array<IOption<T>>;
   textFieldProps?: TextFieldProps;
   InputProps?: Partial<InputProps>;
   inputProps?: { [prop: string]: any };
   menuItemProps?: MenuItemProps;
   menuPaperProps?: PaperProps;
   preventParentSubmit?: boolean;
+  loadOptions: (inputValue: string, callback: ((options: Array<IOption<T>>) => void)) => Promise<any> | void;
+  onEnter?: (
+    evt: React.KeyboardEvent<HTMLInputElement>,
+    props: IMatAutocompleteProps<T> & IMatAutocompletePropsInternal<T>
+  ) => void;
 }
-
-export interface IMatAutocompletePropsInternal extends IMatAutocompleteProps {
+export interface IMatAutocompletePropsInternal<T> extends IMatAutocompleteProps<T> {
   setInputValue: (val: any) => void;
 }
-
-export const specialCamelCase = (str: string, maxLength = 0) => {
-  str = deburr(str || '').trim();
-
-  if (!str)
-    return str;
-
-  const rgx = /[^a-z0-9\.\+\-\/#]/ig;
-  const splitted = str.split(rgx).filter(s => !!s);
-
-  let res = splitted.reduce((acc, curr, idx) => {
-    if (idx > 0)
-      acc += curr.charAt(0).toUpperCase() + curr.substr(1).toLowerCase();
-    else
-      acc += curr.charAt(0).toLowerCase() + curr.substr(1).toLowerCase();
-    return acc;
-  }, '');
-
-  if (maxLength && res.length > maxLength) {
-    res = res.substr(0, maxLength);
-  }
-
-  return res;
-};
 
 const InputComponent = (
   { inputRef, ...other }: InputBaseComponentProps
@@ -64,13 +45,13 @@ const InputComponent = (
     <div {...other as any} />
   );
 
-const ControlComponent = (props: ControlProps<IOption>) => {
+const ControlComponent = <T extends {}>(props: ControlProps<IOption<T>>) => {
   const {
     textFieldProps,
     InputProps,
     inputProps,
-    isAppendable
-  } = props.selectProps as unknown as IMatAutocompletePropsInternal;
+    onEnter
+  } = props.selectProps as unknown as IMatAutocompletePropsInternal<T>;
 
   return (
     <TextField {...textFieldProps}
@@ -84,34 +65,16 @@ const ControlComponent = (props: ControlProps<IOption>) => {
           ...props.innerProps
         },
         onKeyDown: (evt) => {
-          if (evt.key === 'Enter') {
-            if (isAppendable) {
-              evt.nativeEvent.stopImmediatePropagation();
-              evt.stopPropagation();
-              evt.preventDefault();
-
-              const camelCased = specialCamelCase((evt.target as any).value as string, 15);
-              if (camelCased) {
-                const allTags = props.getValue() as IOption[];
-
-                if (allTags.some(t => t.value.toLowerCase() === camelCased.toLowerCase())) {
-                  (props.selectProps as IMatAutocompletePropsInternal).setInputValue('');
-                } else {
-                  const allTags = props.getValue() as IOption[];
-                  const newTag = { label: camelCased, value: camelCased };
-                  props.setValue([...allTags as any, newTag], 'set-value');
-                }
-              }
-            }
-          }
+          if (evt.key === 'Enter' && onEnter)
+            onEnter(evt as React.KeyboardEvent<HTMLInputElement>, props as any);
         }
       }}
       InputLabelProps={{ shrink: props.hasValue ? true : undefined }} />
   );
 };
 
-const MenuComponent = (props: MenuProps<IOption>) => {
-  const { menuPaperProps } = props.selectProps as unknown as IMatAutocompletePropsInternal;
+const MenuComponent = <T extends {}>(props: MenuProps<IOption<T>>) => {
+  const { menuPaperProps } = props.selectProps as unknown as IMatAutocompletePropsInternal<T>;
   
   return (
     <Paper {...menuPaperProps} {...props.innerProps}>
@@ -120,8 +83,8 @@ const MenuComponent = (props: MenuProps<IOption>) => {
   );
 };
 
-function OptionComponent(props: OptionProps<IOption>) {
-  const { menuItemProps } = props.selectProps as unknown as IMatAutocompletePropsInternal;
+function OptionComponent<T>(props: OptionProps<IOption<T>>) {
+  const { menuItemProps } = props.selectProps as unknown as IMatAutocompletePropsInternal<T>;
   return (
     <MenuItem {...menuItemProps} component="div"
       buttonRef={props.innerRef} selected={props.isFocused}
@@ -131,20 +94,19 @@ function OptionComponent(props: OptionProps<IOption>) {
   );
 }
 
-function MatAutocomplete({
+function MatAutocomplete<T>({
   textFieldProps = { margin: 'dense', label: 'Name', fullWidth: true },
   menuPaperProps = { square: true },
   menuItemProps = {},
   preventParentSubmit = true,
   ...other
-}: IMatAutocompleteProps) {
+}: IMatAutocompleteProps<T>) {
   const classes = makeStyles(getStyles)();
   const theme = useTheme<any>();
   menuItemProps.className = menuItemProps.className || classes.menuItem;
   menuPaperProps.className = `${classes.menuContainer} ${menuPaperProps.className || ''}`;
 
   // Set defaults
-  other.value = other.value || (other.isMulti ? [] : null);
   other.cacheOptions = other.cacheOptions !== undefined && other.cacheOptions !== null
     ? other.cacheOptions : true;
 
@@ -207,18 +169,17 @@ MatAutocomplete.propTypes = {
   value: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.shape({
       label: PropTypes.string,
-      value: PropTypes.string
+      value: PropTypes.any
     })),
     PropTypes.shape({
       label: PropTypes.string,
-      value: PropTypes.string
+      value: PropTypes.any
     })
   ]),
   options: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string,
-    value: PropTypes.string
+    value: PropTypes.any
   })),
-  isAppendable: PropTypes.bool,
   preventParentSubmit: PropTypes.bool,
   onChange: PropTypes.func,
   textFieldProps: PropTypes.object,

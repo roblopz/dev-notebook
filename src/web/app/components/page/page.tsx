@@ -1,118 +1,95 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/styles';
 import { Formik } from 'formik';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
 import Fab from '@material-ui/core/Fab';
-import SaveIcon from '@material-ui/icons/SaveRounded';
 import CloseIcon from '@material-ui/icons/CloseRounded';
-import MoveVertIcon from '@material-ui/icons/MoreVertRounded';
-import AddIcon from '@material-ui/icons/AddRounded';
 
 import { mapMuiFormikdProps } from '../../lib/muiFormik';
 import { getStyles } from '../../styles/jss/page/page';
+import { yup } from '../../lib/validation/yup';
 
 // Components
-import Note from '../note/note';
-import MatAutocomplete, { IOption, IMatAutocompletePropsInternal } from '../common/matAutocomple';
-import { ValueType } from 'react-select/lib/types';
-import { MenuProps } from 'react-select/lib/components/Menu';
-import { Divider, MenuItem } from '@material-ui/core';
-import PageInfo from './pageInfo';
+import { IPage, INote, ISnippet, INotebook } from '../../redux/store/definitions';
+import PageInfoSection from './pageInfoSection';
+import NotesSection from './notesSection';
 
-export interface IPageData {
-  title: string;
-  subtitle: string;
-}
+const noteValidationSchema = yup.object().shape<INote>({
+  _id: yup.string().nullable().notRequired(),
+  header: yup.string().required(),
+  subheader: yup.string().nullable().notRequired(),
+  snippet: yup.object().shape<ISnippet>({
+    language: yup.string().required(),
+    code: yup.string()
+  }),
+  hideContent: yup.bool().nullable(),
+  hideSnippet: yup.bool().nullable(),
+  content: yup.string(),
+  createdAt: yup.date().nullable().notRequired(),
+  updatedAt: yup.date().nullable().notRequired()
+});
+
+const pageValidationSchema = yup.object().shape<IPage>({
+  _id: yup.string().nullable().notRequired(),
+  title: yup.string().required(),
+  tags: yup.array().of(yup.string().required()).nullable(),
+  notebook: yup.object().shape<INotebook>({
+    name: yup.string().required()
+  }).required(),
+  notes: yup.array().of(noteValidationSchema).min(1, 'At least one note is required'),
+  createdAt: yup.date().nullable().notRequired(),
+  updatedAt: yup.date().nullable().notRequired()
+});
+
+const defaultNote = {
+  get value() {
+    return {
+      header: '',
+      subheader: '',
+      content: '',
+      hideContent: true,
+      hideSnippet: true,
+      snippet: { language: 'javascript', code: '' }
+    };
+  }
+};
 
 export default function Page() {
   const classes = makeStyles(getStyles)();
+  const currentPage = {} as IPage;
 
-  const getInitialValues = useCallback((): IPageData => ({
-    title: '',
-    subtitle: ''
+  const getInitialValues = useCallback((): Partial<IPage> => ({
+    title: currentPage.title || '',
+    notebook: currentPage.notebook,
+    tags: currentPage.tags || [],
+    notes: Array.isArray(currentPage.notes) ? currentPage.notes
+      : [Object.assign(defaultNote.value, { hideContent: false, hideSnippet: false })]
   }), []);
-
-  const [tags, setTags] = useState<ValueType<IOption>>([]);
-  const [notebook, setNotebook] = useState<ValueType<IOption>>(null);
-
-  const loadTags = useCallback(async (inputValue) => {
-    return [];
-  }, []);
-
-  const loadNotebooks = useCallback(async (inputValue) => {
-    return [{ label: 'Loose pages', value: 'loosePages' }];
-  }, []);
-
-  const NotebookSelectMenu = useMemo(() => {
-    return (props: MenuProps<IOption>) => {
-      const { menuPaperProps } = props.selectProps as unknown as IMatAutocompletePropsInternal;
-      return (
-        <Paper {...menuPaperProps} {...props.innerProps}>
-          {props.children}
-          <Divider />
-          <MenuItem className={classes.notebookAddMenuItem} component="div">
-            Add...
-          </MenuItem>
-        </Paper>
-      );
-    };
-  }, []);
 
   return (
     <Paper className={classes.root}>
-      <Formik initialValues={getInitialValues()} onSubmit={(...args) => console.log(args)}>
-        {({ values, handleChange, handleSubmit, errors, touched }) => (
-          <React.Fragment>
-            <div className={classes.pageTitle}>
-              <TextField label="Page title" className="mb-2" fullWidth margin="dense"
-                {...mapMuiFormikdProps('title', values, errors, touched)} onChange={handleChange} />
-              <Fab color="default" className={classes.closeBtn}>
-                <CloseIcon className={classes.closeBtnIcon} />
-              </Fab>
-            </div>
-            <div className="d-flex">
-              <section className={classes.pageInfoSection}>
-                <form className={classes.pageInfoForm} onSubmit={handleSubmit}>
-                  <MatAutocomplete
-                    textFieldProps={{ label: 'Notebook', margin: 'dense', fullWidth: true }}
-                    value={notebook} loadOptions={loadNotebooks} onChange={(val, action) => setNotebook(val)}
-                    defaultOptions={[
-                      { label: 'Loose pages', value: 'loosePages' }
-                    ]}
-                    components={{
-                      Menu: NotebookSelectMenu
-                    }} />
+      <Formik initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={(...args) => console.log(args)}>
+        {(formikBag) => {
+          const { values, errors, touched, handleChange, handleSubmit } = formikBag;
 
-                  <MatAutocomplete textFieldProps={{ label: 'Tags', margin: 'dense', fullWidth: true }}
-                    value={tags} loadOptions={loadTags} onChange={(options, action) => setTags(options)}
-                    isMulti isAppendable />
-
-                  <PageInfo className="mt-3" />
-
-                  <div className={classes.pageInfoFooter}>
-                    <div className={classes.pageOptionBtns}>
-                      <Button className={classes.saveBtn} size="small" variant="contained" color="primary" type="button">
-                        <SaveIcon fontSize="small" />&nbsp;Save
-                       </Button>
-                      <IconButton className={classes.optionsBtn} color="default">
-                        <MoveVertIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  </div>
-                </form>
-              </section>
-              <section className={classes.notesSection}>
-                <Note />
-                <Fab className={classes.addNoteIcon} color="primary" size="small">
-                  <AddIcon />
+          return (
+            <form onSubmit={handleSubmit} className={classes.mainPageForm}>
+              <div className={classes.pageTitle}>
+                <TextField label="Page title" className="mb-2" fullWidth margin="dense"
+                  {...mapMuiFormikdProps('title', values, errors, touched)} onChange={handleChange} />
+                <Fab color="default" className={classes.closePageBtn}>
+                  <CloseIcon className={classes.closePageBtnIcon} />
                 </Fab>
-              </section>
-            </div>
-          </React.Fragment>
-        )}
+              </div>
+
+              <div className="d-flex">
+                <PageInfoSection parentFormBag={formikBag} />
+                <NotesSection parentFormBag={formikBag} defaultNote={defaultNote} />
+              </div>
+            </form>
+          );
+        }}
       </Formik>
     </Paper>
   );

@@ -5,7 +5,18 @@ export const getRichEditorStyle = (theme: any) => ({
     border: '1px solid #d1d1d1',
     borderRadius: '4px'
   },
-  noteTitleIcon: noteTitleIconStyle
+  noteTitleIcon: noteTitleIconStyle,
+  switchBase: {
+    height: 'unset !important'
+  },
+  switchLabelWrapper: {
+    marginLeft: '-8px',
+  },
+  switchLabelText: {
+    position: 'relative' as 'relative',
+    left: '-8px',
+    fontWeight: 500
+  }
 });
 
 export const getRichEditorToolbarStyle = (theme: any) => ({

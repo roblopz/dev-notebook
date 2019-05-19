@@ -2,30 +2,38 @@ export type mongoID = string;
 export type fieldErrors = string[];
 
 export interface INotebook {
-  _id: mongoID;
+  _id?: mongoID;
   name: string;
-  pages: IPage[] | mongoID[];
-  createdAt: Date;
-  updatedAt: Date;
+  pages?: IPage[] | mongoID[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface IPage {
   _id: mongoID;
   title: string;
-  notebook: INotebook | mongoID;
+  notebook: INotebook;
   tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  notes: INote[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ISnippet {
+  language: string;
+  code: string;
 }
 
 export interface INote {
-  _id: mongoID;
+  _id?: mongoID;
   header: string;
   subheader: string;
   content: string;
-  code: string;
-  createdAt: Date;
-  updatedAt: Date;
+  snippet: ISnippet;
+  hideContent?: boolean;
+  hideSnippet?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type ValidationError = {

@@ -20,11 +20,13 @@ export const getStyles = (theme: any) => ({
   andOrDivider: {
     marginTop: 25
   },
-  noteOptionsIcon: {
-    padding: 5,
+  noteIconsContainer: {
     position: 'absolute' as 'absolute',
     right: theme.spacing.unit,
     zIndex: theme.zIndex.mobileStepper
+  },
+  noteIcon: {
+    padding: 5
   }
 });
 
