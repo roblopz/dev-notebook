@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import deburr from 'lodash/deburr';
 import NewIcon from '@material-ui/icons/FiberNewRounded';
-import { InputAdornment } from '@material-ui/core';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import { FormikProps } from 'formik';
 
 import PageFooter from './pageFooter';

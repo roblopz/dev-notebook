@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/styles';
 import { IPage, INote } from '../../redux/store/definitions';
 import AddIcon from '@material-ui/icons/AddRounded';
 import Fab from '@material-ui/core/Fab';
-import { Typography } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 
 import Note from '../note/note';
 import { getStyles } from '../../styles/jss/page/notesSection';

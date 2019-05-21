@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 
 import { getStyles } from '../../styles/jss/page/pageInfo';
-import { Typography } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
 import { IPage, INote } from '../../redux/store/definitions';
 
 export interface IPageInfoProps {

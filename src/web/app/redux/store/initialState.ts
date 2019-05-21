@@ -5,6 +5,8 @@ import {
   INotebook
 } from './definitions';
 
+import { notebooks } from './testInitialState';
+
 function getDefaultState<T>(value: T | null): IStateData<T> {
   return {
     value,
@@ -16,6 +18,6 @@ function getDefaultState<T>(value: T | null): IStateData<T> {
 
 export const initialState: IAppState = {
   currentPage: getDefaultState<IPage>(null),
-  notebooks: getDefaultState<INotebook[]>(null),
+  notebooks: getDefaultState<INotebook[]>(notebooks),
   pages: getDefaultState<IPage[]>(null)
 };
