@@ -63,6 +63,10 @@
   border-bottom: 2px solid;        
 }
 
+.no-min-width {
+  min-width: unset !important;
+}
+
 // Monaco code editor overrides
 
 .monaco-editor {

@@ -21,7 +21,7 @@ export interface ILanguageTreeProps {
 function LanguageTree({
   languages
 }: ILanguageTreeProps) {
-  const classes = makeStyles(getStyles)();
+  const classes = makeStyles(getStyles)({});
   const [treeOpen, setTreeOpen] = useState(false);
   const filterRef = useRef(null);
 
@@ -36,11 +36,11 @@ function LanguageTree({
   return (
     <div className={classes.root}>
       <ListItem button className="pl-2" onClick={onTreeToggle}>
-        <ListItemIcon className="mr-2">
+        <ListItemIcon className="no-min-width mr-3">
           <CodeIcon className={classes.languagesIcon} />
         </ListItemIcon>
         <div>
-          Languages
+          Language
           <div>
             <InputBase inputRef={filterRef} placeholder="Filter" />
           </div>
@@ -51,7 +51,7 @@ function LanguageTree({
         {languages.map((lang, idx) => (
           <List key={idx} disablePadding>
             <ListItem button className="py-1">
-              <ListItemIcon className="mr-2">
+              <ListItemIcon className="no-min-width mr-3">
                 <ReceiptIcon />
               </ListItemIcon>
               <ListItemText inset primary={lang} className="pl-0" />
@@ -65,7 +65,7 @@ function LanguageTree({
 
 LanguageTree.defaultProps = {
   languages: []
-}
+};
 
 LanguageTree.propTypes = {
   languages: PropTypes.arrayOf(PropTypes.string).isRequired

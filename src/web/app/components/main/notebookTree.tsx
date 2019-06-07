@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef } from 'react';
-import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
@@ -11,20 +10,42 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import CollectionsIcon from '@material-ui/icons/CollectionsBookmarkRounded';
 import BookIcon from '@material-ui/icons/BookOutlined';
+import FilteredIcon from '@material-ui/icons/FilterListRounded';
+import { useQuery, useMutation } from 'react-apollo-hooks';
+import gql from 'graphql-tag';
 
 import { getStyles } from '../../styles/jss/main/notebookTree';
-import { IStateData, INotebook } from '../../redux/store/definitions';
+import { GET_NOTEBOOK_LIST, IGetNotebookListData as IGetNotebookListResult } from '../../graphql/queries/notebookQueries';
+import { IPageFilters } from '../../graphql/@client/appState';
+import { ISetPageFiltersMutationInput, mutations } from '../../graphql/@client/mutations';
+import { INotebook } from '../../models';
 
-export interface INotebookTreeProps {
-  notebooks: IStateData<INotebook[]>;
+interface IGetNotebookFilterResult {
+  pageFilters: Pick<IPageFilters, 'notebook'>;
 }
 
-function NotebookTree({
-  notebooks
-}: INotebookTreeProps) {
-  const classes = makeStyles(getStyles)();
+const GET_NOTEBOOK_FILTER = gql`
+  query getNotebookFilter {
+    pageFilters {
+      notebook
+    }
+  }
+`;
+
+function NotebookTree() {
+  const classes = makeStyles(getStyles)({});
   const [treeOpen, setTreeOpen] = useState(false);
   const filterRef = useRef(null);
+
+  const { data: { notebooks = [] } } = useQuery<IGetNotebookListResult>(GET_NOTEBOOK_LIST);
+  const { data: { pageFilters: { notebook: filteringNotebookID } } } = useQuery<IGetNotebookFilterResult>(GET_NOTEBOOK_FILTER);
+  const setPageFilter = useMutation<void, ISetPageFiltersMutationInput>(mutations.setPageFilters.query);
+
+  const onNotebookClick = useCallback((notebook: Pick<INotebook, '_id' | 'name'>) => {
+    setPageFilter({
+      variables: { pageFilters: { notebook: notebook._id } }
+    });
+  }, []);
 
   const onTreeToggle = useCallback((evt: React.MouseEvent<HTMLElement>) => {
     let toggleOpen = !treeOpen;
@@ -37,7 +58,7 @@ function NotebookTree({
   return (
     <div className={classes.root}>
       <ListItem button className="pl-2" onClick={onTreeToggle}>
-        <ListItemIcon className="mr-2">
+        <ListItemIcon className="no-min-width mr-3">
           <CollectionsIcon className={classes.notebooksIcon} />
         </ListItemIcon>
         <div>
@@ -49,23 +70,24 @@ function NotebookTree({
         {treeOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </ListItem>
       <Collapse in={treeOpen} unmountOnExit>
-        {notebooks.value.map((n, idx) => (
-          <List key={idx} disablePadding>
-            <ListItem button className="py-1">
-              <ListItemIcon className="mr-2">
+        <List disablePadding>
+          {notebooks.map((n, idx) => (
+            <ListItem key={n._id || idx} button className="py-1"
+              selected={filteringNotebookID === n._id} onClick={() => onNotebookClick(n)}>
+              <ListItemIcon className="no-min-width mr-3">
                 <BookIcon />
               </ListItemIcon>
               <ListItemText inset primary={n.name} className="pl-0" />
+              {filteringNotebookID === n._id ?
+                <ListItemIcon className={classes.filteredIcon}>
+                  <FilteredIcon />
+                </ListItemIcon> : null}
             </ListItem>
-          </List>
-        ))}
+          ))}
+        </List>
       </Collapse>
     </div>
   );
 }
-
-NotebookTree.propTypes = {
-  notebooks: PropTypes.object.isRequired
-};
 
 export default NotebookTree;

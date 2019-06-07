@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "src",
+    "outDir": "build/server",
+    "module": "commonjs",
+    "target": "es2016",
+    // "lib": ["es2016", "esnext.asynciterable"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,  
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "allowJs": true
+  },
+  "exclude": [
+    "node_modules",
+    "build",    
+    "config",
+    "src/web"
+  ]
+}

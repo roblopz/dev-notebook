@@ -13,7 +13,8 @@ import { OptionProps } from 'react-select/lib/components/Option';
 import { MenuItemProps } from '@material-ui/core/MenuItem';
 import { PaperProps } from '@material-ui/core/Paper';
 
-import { getStyles } from '../../styles/jss/common/matTagSelect';
+import { getStyles } from '../../styles/jss/common/matAutocomplete';
+import { SelectComponents } from 'react-select/lib/components';
 
 export interface IOption<T> {
   label: string;
@@ -41,10 +42,12 @@ export interface IMatAutocompletePropsInternal<T> extends IMatAutocompleteProps<
 }
 
 const InputComponent = (
-  { inputRef, ...other }: InputBaseComponentProps
-) => (
-    <div {...other as any} />
+  { inputRef, value, name, type, className, ...other }: InputBaseComponentProps
+) => {
+  return (
+    <div {...other as any} style={{ width: '100%' }} />
   );
+}
 
 const ControlComponent = <T extends {}>(props: ControlProps<IOption<T>>) => {
   const {
@@ -87,7 +90,7 @@ const MenuComponent = <T extends {}>(props: MenuProps<IOption<T>>) => {
 function OptionComponent<T>(props: OptionProps<IOption<T>>) {
   const { menuItemProps } = props.selectProps as unknown as IMatAutocompletePropsInternal<T>;
   return (
-    <MenuItem {...menuItemProps} component="div"
+    <MenuItem {...menuItemProps as any} component="div"
       buttonRef={props.innerRef} selected={props.isFocused}
       {...props.innerProps}>
       {props.children}
@@ -102,7 +105,7 @@ function MatAutocomplete<T>({
   preventParentSubmit = true,
   ...other
 }: IMatAutocompleteProps<T>) {
-  const classes = makeStyles(getStyles)();
+  const classes = makeStyles(getStyles)({});
   const theme = useTheme<any>();
   menuItemProps.className = menuItemProps.className || classes.menuItem;
   menuPaperProps.className = `${classes.menuContainer} ${menuPaperProps.className || ''}`;
@@ -137,7 +140,7 @@ function MatAutocomplete<T>({
           LoadingIndicator: () => null,
           LoadingMessage: () => null,
           ...other.components
-        }}
+        } as SelectComponents<IOption<T>>}
         styles={{
           ...other.styles,
           valueContainer: (provided) => ({

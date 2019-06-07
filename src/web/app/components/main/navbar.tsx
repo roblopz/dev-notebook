@@ -6,10 +6,10 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 import { getStyles } from '../../styles/jss/main/navbar';
-import NavbarSearch from './navbarSearch';
+import FilterNotes from './navbarFilterNotes';
 
 function Navbar() {
-  const classes = makeStyles(getStyles)();
+  const classes = makeStyles(getStyles)({});
 
   return (
     <AppBar position="fixed" className={classes.navbar}>
@@ -18,7 +18,7 @@ function Navbar() {
           Dev Notebooks
         </Typography>
         <div className={classes.flexGrow} />
-        <NavbarSearch />
+        <FilterNotes />
       </Toolbar>
     </AppBar>
   );

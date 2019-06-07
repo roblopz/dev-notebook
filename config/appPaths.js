@@ -7,6 +7,6 @@ module.exports = {
   node_modules: path.join(rootPath, '/node_modules'),
   webBase: path.join(rootPath, '/src/web'),
   webOutput: path.join(rootPath, '/dist'),
-  tsConfig: path.join(rootPath, 'tsconfig.json'),
+  tsConfig: path.join(rootPath, 'tsconfig.client.json'),
   tsLint: path.join(rootPath, 'tslint.json'),
 };

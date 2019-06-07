@@ -25,7 +25,8 @@
     "interface-over-type-literal": false,
     "semicolon": [true, "always"],
     "no-trailing-whitespace": [true, "ignore-comments", "ignore-blank-lines"],
-    "no-conditional-assignment": false
+    "no-conditional-assignment": false,
+    "no-var-requires": false
   },
   "rules": {
     "indent": [true, "spaces", 2],
@@ -48,6 +49,7 @@
     "interface-over-type-literal": false,
     "semicolon": [true, "always"],
     "no-trailing-whitespace": [true, "ignore-comments", "ignore-blank-lines"],
-    "no-conditional-assignment": false
+    "no-conditional-assignment": false,
+    "no-var-requires": false
   }
 }

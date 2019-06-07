@@ -54,7 +54,7 @@ module.exports = {
       }
     }),
     new ForkTsCheckerWebpackPlugin({
-      tsconfig: appPaths.tsconfig,
+      tsconfig: appPaths.tsConfig,
       tslint: appPaths.tsLint,
     }),
     new MiniCssExtractPlugin({

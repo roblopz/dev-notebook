@@ -1,28 +1,29 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
-import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/styles';
 import Drawer from '@material-ui/core/Drawer';
+import Divider from '@material-ui/core/Divider';
 
 import { getStyles } from '../../styles/jss/main/sidebar';
+import PageSearch from './pageSearch';
 import NotebookTree from './notebookTree';
 import LanguageTree from './languageTree';
+import TagsTree from './tagsTree';
 
 function Sidebar() {
-  const classes = makeStyles(getStyles)();
-  const notebooks = useSelector(state => state.notebooks);
+  const classes = makeStyles(getStyles)({});
 
   return (
-    <Drawer variant="permanent">
+    <Drawer variant="permanent" className={classes.drawer} classes={{ paper: classes.drawerPaper }}>
       <div className={classes.toolbar} />
-      <NotebookTree notebooks={notebooks} />
-      <LanguageTree languages={['Javascript', 'C#', 'Perl', 'Text']} />
+      <PageSearch />
+      <Divider />
+      <div className="h-100">
+        <NotebookTree />
+        <LanguageTree languages={['javascript', '.NET']} />
+        <TagsTree tags={[]} />
+      </div>
     </Drawer>
   );
 }
-
-Sidebar.propTypes = {
-
-};
 
 export default Sidebar;

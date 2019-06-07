@@ -144,6 +144,7 @@ function ResizableBlock({
     clearTimeout(checkStyleEffectTimeout);
 
     checkStyleEffectTimeout = setTimeout(() => {
+      if (!containerRef || !containerRef.current) return;
       if (resizable.width && !(containerRef.current.style.width.includes(resizable.width as any)))
         containerRef.current.style.width = isNaN(resizable.width) ? resizable.width as unknown as string : `${resizable.width}px`;
     }, 200);

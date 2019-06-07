@@ -1,7 +1,7 @@
 
 export const getStyles = (theme: any) => ({
   root: {
-    maxHeight: '45vh',
+    maxHeight: '30%',
     overflow: 'auto'
   },
   languagesIcon: {

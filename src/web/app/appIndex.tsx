@@ -5,14 +5,18 @@ import { Switch, Route } from 'react-router-dom';
 // Components
 import Main from './components/main/main';
 import CurrentTheme from './components/currentTheme/currentTheme';
+import PageEditModal from './components/pageEdit/pageEditModal';
 
 class App extends React.Component {
   public render() {
     return (
-      <Switch>
-        <Route exact path="/" component={Main} />
-        <Route exact path="/theme" component={CurrentTheme} />
-      </Switch>
+      <React.Fragment>
+        <Switch>
+          <Route exact path="/" component={Main} />
+          <Route exact path="/theme" component={CurrentTheme} />
+        </Switch>
+        <PageEditModal />
+      </React.Fragment>
     );
   }
 }

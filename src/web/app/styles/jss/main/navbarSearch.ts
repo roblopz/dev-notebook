@@ -12,12 +12,12 @@ export const getStyles = (theme: any) => ({
   },
   searchInput: {
     position: 'relative' as 'relative',
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing(1),
     width: 'auto' as 'auto',
-    marginRight: theme.spacing.unit
+    marginRight: theme.spacing(1)
   },
   searchIconContainer: {
-    width: theme.spacing.unit * 6,
+    width: theme.spacing(6),
     height: '100%',
     position: 'absolute' as 'absolute',
     pointerEvents: 'none' as 'none',
@@ -32,7 +32,7 @@ export const getStyles = (theme: any) => ({
     justifyContent: 'center',
     cursor: 'pointer',
     position: 'relative' as 'relative',
-    left: -1 * theme.spacing.unit
+    left: -1 * theme.spacing(1)
   },
   settingsIcon: {
     fontSize: '18px'
@@ -42,21 +42,21 @@ export const getStyles = (theme: any) => ({
     width: '100%',
   },
   inputInput: {
-    paddingTop: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
-    paddingBottom: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 5,
+    paddingTop: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    paddingLeft: theme.spacing(6),
     transition: theme.transitions.create('width'),
-    width: 120,
+    width: 180,
     '&:focus': {
-      width: 200,
+      width: 240,
     }
   },
   filterSettingsRoot: {
     zIndex: theme.zIndex.drawer + 2
   },
   filterSettingsPaper: {
-    padding: theme.spacing.unit * 2
+    padding: theme.spacing(2)
   },
   filterCheckbox: {
     padding: 0,
