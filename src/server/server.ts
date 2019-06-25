@@ -1,19 +1,15 @@
 import "reflect-metadata";
 import express from 'express';
-import dotenv from "dotenv";
-import path from 'path';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from "type-graphql";
 
+import appSettings from './appSettings';
 import Resolvers from './graphql/resolvers';
 
-const app = express();
-const originalSourceWorkdir = path.resolve(process.cwd(), './src/server/');
-app.set('originalSourceWorkdir', originalSourceWorkdir);
+import { initDBs } from './DAL/initDBs';
+initDBs();
 
-dotenv.config({
-  path: path.resolve(originalSourceWorkdir, `./env/${process.env.NODE_ENV === 'production' ? 'prod.env' : 'dev.env'}`)
-});
+const app = express();
 
 (async () => {
   const schema = await buildSchema({
@@ -25,11 +21,11 @@ dotenv.config({
     schema
   });
 
-  app.set('port', process.env.APP_PORT);
+  app.set('port', appSettings.APP_PORT);
   apolloServer.applyMiddleware({ app });
 
   app.listen(app.get('port'), () => {
-    const currentEnv = app.get('env');
+    const currentEnv = appSettings.ENV;
     const appAddress = `http://localhost:${app.get('port')}`;
 
     // tslint:disable-next-line no-console

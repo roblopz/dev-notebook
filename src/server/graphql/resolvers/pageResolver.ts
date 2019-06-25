@@ -1,37 +1,60 @@
-import { Resolver, Query, FieldResolver, Root, Arg } from "type-graphql";
-import { Page } from "../types/page";
-import { Notebook } from "../types/notebook";
+import { Resolver, Query, FieldResolver, Root, Arg, Mutation, Ctx } from "type-graphql";
+import { PageType, PageNotebookType } from "../types/pageType";
+import { NotebookType } from "../types/notebookType";
 
-import { pages, notebooks } from '../../data';
-import { PageFilterInput } from "../inputs/pageInputs";
-import { PaginateInput } from "../inputs/commonInputs";
+import PageCollection from '../../DAL/collections/pageCollection';
+import NotebookCollection from "../../DAL/collections/notebookCollection";
+import { CreatePageInput } from "../inputs/createPage";
+import { IPage, INote, INotebook } from "../../DAL/models";
 
-@Resolver(of => Page)
+@Resolver(of => PageType)
 export class PageResolver {
-  @Query(returns => [Page], { nullable: true })
-  public pages(
-    @Arg('filter', { nullable: true }) pageFilter: PageFilterInput,
-    @Arg('pagination', { nullable: true }) pagination: PaginateInput
-  ): Page[] {
-    return pages;
+
+  @Query(returns => [PageType])
+  public async pages(): Promise<Array<Omit<PageType, 'notebook'>>> {
+    return await PageCollection.findAsync<IPage>({});
   }
 
-  @FieldResolver()
-  public notebook(@Root() page: Page): Notebook {
-    if (typeof page.notebook === 'string') {
-      return notebooks.find(n => n._id === page.notebook);
-    } else {
-      return page.notebook;
+  @FieldResolver(of => NotebookType)
+  public async notebook(@Root() parent: IPage): Promise<NotebookType> {
+    const notebook = await NotebookCollection.findOneAsync<INotebook>({ _id: parent.notebook });
+    return notebook;
+  }
+
+  @Mutation(returns => PageType, { nullable: true })
+  public async createPage(@Arg("page") newPage: CreatePageInput): Promise<Omit<PageType, 'notebook'>> {
+    // Create notebook if not existent
+    let targetNotebookExists = true;
+    let targetNotebook = await NotebookCollection.findOneAsync<INotebook>({
+      name: new RegExp(`^${newPage.notebook}$`, 'i')
+    });
+
+    if (!targetNotebook) {
+      targetNotebookExists = false;
+      targetNotebook = await NotebookCollection.insertAsync<INotebook>({
+        name: newPage.notebook.trim(),
+        createdAt: new Date()
+      });
     }
-  }
 
-  @Query(returns => [String], { nullable: true })
-  public allPageTags(): string[] {
-    const allTags = pages.reduce((acc, curr) => {
-      acc.push(...curr.tags);
-      return acc;
-    }, []);
+    try {
+      const page = await PageCollection.insertAsync<IPage>({
+        ...newPage,
+        notebook: targetNotebook._id,
+        notes: newPage.notes.map<INote>(n => ({ ...n, createdAt: new Date() })),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
 
-    return allTags.filter((l, idx, self) => self.indexOf(l) === idx);
+      return page;
+    } catch (err) {
+      // Rollback notebook creation
+      if (!targetNotebookExists) {
+        // tslint:disable-next-line no-empty
+        NotebookCollection.remove({ _id: targetNotebook._id }, () => { });
+      }
+      
+      throw err;
+    }
   }
 }

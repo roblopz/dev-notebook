@@ -1,31 +1,25 @@
 import { Resolver, Query, FieldResolver, Root } from "type-graphql";
 
-import { notebooks, pages } from '../../data';
-import { Notebook } from "../types/notebook";
-import { Page } from "../types/page";
-import { Note } from "../types/note";
+import NotebookCollection from '../../DAL/collections/notebookCollection';
+import PageCollection from "../../DAL/collections/pageCollection";
+import { NotebookType } from "../types/notebookType";
+import { PageType } from "../types/pageType";
+import { INotebook, IPage } from "../../DAL/models";
 
-@Resolver(of => Notebook)
+@Resolver(of => NotebookType)
 export class NotebookResolver {
 
-  @Query(returns => [Notebook], { nullable: true })
-  public notebooks(): Notebook[] {
-    return notebooks;
+  @Query(returns => [NotebookType], { nullable: true })
+  public async notebooks(): Promise<NotebookType[]> {
+    return await NotebookCollection.findAsync<INotebook>({});
   }
 
   @FieldResolver()
-  public pages(@Root() notebook: Notebook): Page[] {
-    const res: Page[] = [];
+  public async pages(@Root() parent: NotebookType): Promise<PageType[]> {
+    const targetPages = await PageCollection.findAsync<IPage>(
+      { _id: { $in: parent.pages.map(p => p._id) } }
+    );
 
-    notebook.pages.forEach(np => {
-      if (typeof np === 'string') {
-        const page = pages.find(p => p._id === np);
-        res.push(page);
-      } else {
-        res.push(np);
-      }
-    });
-
-    return res;
+    return targetPages.map<PageType>(p => ({ ...p, notebook: parent }));
   }
 }

@@ -20,7 +20,7 @@ import { BlockPicker } from 'react-color';
 import RenderPropsWrap from '../common/renderPropsWrap';
 import { IStyleMap, IStyleToPropsPlugin } from 'draft-js-styletoprops-plugin';
 import { getRichEditorToolbarStyle as getStyle } from '../../styles/jss/noteEdit/richEditor';
-import { nameof } from '../../lib/tsUtil';
+import { nameof } from '../../../../shared/tsUtil';
 
 export interface IRichEditorPropTypes {
   EditorPlugins: {

@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef } from 'react';
-import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
@@ -11,19 +10,33 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import CodeIcon from '@material-ui/icons/CodeRounded';
 import ReceiptIcon from '@material-ui/icons/ReceiptOutlined';
+import FilteredIcon from '@material-ui/icons/FilterListRounded';
+import { useQuery } from 'react-apollo-hooks';
+import gql from 'graphql-tag';
 
 import { getStyles } from '../../styles/jss/main/languageTree';
+import { IGetAllNoteLanguagesData, queries } from '../../graphql/queries/noteQueries';
+import { IPageFilters } from '../../graphql/@client/appState';
 
-export interface ILanguageTreeProps {
-  languages: string[];
+interface IGetLanguagesFilterResult {
+  pageFilters: Pick<IPageFilters, 'languages'>;
 }
 
-function LanguageTree({
-  languages
-}: ILanguageTreeProps) {
+const GET_LANGUAGES_FILTER = gql`
+  query getFilterLanguages {
+    pageFilters {
+      languages
+    }
+  }
+`;
+
+function LanguageTree() {
   const classes = makeStyles(getStyles)({});
   const [treeOpen, setTreeOpen] = useState(false);
   const filterRef = useRef(null);
+
+  const { data: { languages = [] } } = useQuery<IGetAllNoteLanguagesData>(queries.GET_ALL_NOTE_LANGUAGES);
+  const { data: { pageFilters: { languages: filteringLanguages } } } = useQuery<IGetLanguagesFilterResult>(GET_LANGUAGES_FILTER);
 
   const onTreeToggle = useCallback((evt: React.MouseEvent<HTMLElement>) => {
     let toggleOpen = !treeOpen;
@@ -48,27 +61,23 @@ function LanguageTree({
         {treeOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </ListItem>
       <Collapse in={treeOpen} unmountOnExit>
-        {languages.map((lang, idx) => (
-          <List key={idx} disablePadding>
-            <ListItem button className="py-1">
+        <List disablePadding>
+          {languages.map((lang, idx) => (
+            <ListItem key={idx} button className="py-1">
               <ListItemIcon className="no-min-width mr-3">
                 <ReceiptIcon />
               </ListItemIcon>
               <ListItemText inset primary={lang} className="pl-0" />
+              {filteringLanguages.includes(lang) ?
+                <ListItemIcon className={classes.filteredIcon}>
+                  <FilteredIcon />
+                </ListItemIcon> : null}
             </ListItem>
-          </List>
-        ))}
+          ))}
+        </List>
       </Collapse>
     </div>
   );
 }
-
-LanguageTree.defaultProps = {
-  languages: []
-};
-
-LanguageTree.propTypes = {
-  languages: PropTypes.arrayOf(PropTypes.string).isRequired
-};
 
 export default LanguageTree;

@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 import { INotebook } from '../../models';
-import { OptionalExceptFor } from '../../lib/tsUtil';
+import { OptionalExceptFor } from '../../../../shared/tsUtil';
 
 export type INotebookListItem = OptionalExceptFor<INotebook, '_id' | 'name'>;
 

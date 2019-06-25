@@ -15,7 +15,7 @@ import { yup } from '../../lib/validation/yup';
 import { IPage, INote, ISnippet, INotebook } from '../../models';
 import PageInfoSection from './pageInfoSection';
 import NotesSection from './notesSection';
-import { Omit } from '../../lib/tsUtil';
+import { Omit } from '../../../../shared/tsUtil';
 
 export type FormPage = IPage | { notebook: FormNotebook };
 export type FormNotebook = Partial<INotebook> & Pick<INotebook, 'name'>;

@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/styles';
 import { getStyles } from '../../styles/jss/pageEdit/pageInfo';
 import Typography from '@material-ui/core/Typography';
 import { IPage } from '../../models';
-import { WithOptional } from '../../lib/tsUtil';
+import { WithOptional } from '../../../../shared/tsUtil';
 
 export interface IPageInfoProps {
   page: WithOptional<IPage, '_id'>;

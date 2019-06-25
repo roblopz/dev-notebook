@@ -19,7 +19,7 @@ function Sidebar() {
       <Divider />
       <div className="h-100">
         <NotebookTree />
-        <LanguageTree languages={['javascript', '.NET']} />
+        <LanguageTree />
         <TagsTree tags={[]} />
       </div>
     </Drawer>

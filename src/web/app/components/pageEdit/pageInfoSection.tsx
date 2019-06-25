@@ -12,7 +12,7 @@ import GeneralPageInfo from './generalPageInfo';
 import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../common/matAutocomple';
 import { getStyles } from '../../styles/jss/pageEdit/pageInfoSection';
 import { IPage, INotebook } from '../../models';
-import { WithOptional, OptionalExceptFor } from '../../lib/tsUtil';
+import { WithOptional, OptionalExceptFor } from '../../../../shared/tsUtil';
 
 function tagCamelCase(str: string, maxLength = 0) {
   str = deburr(str || '').trim();

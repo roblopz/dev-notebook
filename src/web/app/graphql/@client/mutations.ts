@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { nameof } from '../../lib/tsUtil';
+import { nameof } from '../../../../shared/tsUtil';
 import { IAppMutation } from './definitions';
 import { IAppState, IPageFilters } from './appState';
 

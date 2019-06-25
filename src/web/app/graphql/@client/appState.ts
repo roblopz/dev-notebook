@@ -4,7 +4,7 @@ const cache = new InMemoryCache();
 
 export interface IPageFilters {
   __typename: 'PageFilters';
-  language: string;
+  languages: string[];
   notebook: ID;
   search: string;
   tags: string[];
@@ -17,10 +17,10 @@ export interface IAppState {
 export const initialState: IAppState = {
   pageFilters: {
     __typename: 'PageFilters',
-    language: null,
+    languages: [],
     notebook: null,
     search: null,
-    tags: null
+    tags: []
   }
 };
 

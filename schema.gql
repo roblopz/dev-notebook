@@ -3,65 +3,76 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+input CreatePageInput {
+  title: String!
+  notebook: String!
+  tags: [String!]
+  notes: [NewPageNoteInput!]!
+}
+
 """
 The javascript `Date` as string. Type represents date and time as the ISO Date string.
 """
 scalar DateTime
 
-type Note {
-  _id: ID!
+type Mutation {
+  createPage(page: CreatePageInput!): PageType
+}
+
+input NewNoteSnippetInput {
+  language: String
+  code: String
+}
+
+input NewPageNoteInput {
   header: String!
   subheader: String
   content: String
-  snippet: Snippet
+  snippet: NewNoteSnippetInput
   hideContent: Boolean
   hideSnippet: Boolean
-  createdAt: DateTime
-  updatedAt: DateTime
 }
 
-type Notebook {
+type NotebookType {
   _id: ID!
   name: String!
-  pages: [Page!]!
-  createdAt: DateTime
+  pages: [PageType!]
+  createdAt: DateTime!
   updatedAt: DateTime
 }
 
-type Page {
+type NoteSnippetType {
+  language: String
+  code: String
+}
+
+type NoteType {
+  header: String!
+  subheader: String
+  content: String
+  snippet: NoteSnippetType
+  hideContent: Boolean
+  hideSnippet: Boolean
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type PageNotebookType {
+  _id: ID!
+  name: String!
+}
+
+type PageType {
   _id: ID!
   title: String!
-  notebook: Notebook!
-  tags: [String!]!
-  notes: [Note!]!
-  createdAt: DateTime
-  updatedAt: DateTime
-}
-
-input PageFilterInput {
-  search: String
-  notebook: ID
-  language: String
+  notebook: PageNotebookType!
   tags: [String!]
-}
-
-input PaginateInput {
-  take: Int = 5
-  after: ID
+  notes: [NoteType!]!
+  createdAt: DateTime!
+  updatedAt: DateTime
 }
 
 type Query {
-  pages(pagination: PaginateInput, filter: PageFilterInput): [Page!]
-  allPageTags: [String!]
-  notebooks: [Notebook!]
-  notes(pageID: String!): [Note!]
-  allNoteLanguages: [String!]
-}
-
-type Snippet {
-  _id: ID
-  language: String!
-  code: String!
-  createdAt: DateTime
-  updatedAt: DateTime
+  pages: [PageType!]!
+  notebooks: [NotebookType!]
 }

@@ -9,7 +9,7 @@ import Typography from '@material-ui/core/Typography';
 
 import NoteEdit from '../noteEdit/noteEdit';
 import { getStyles } from '../../styles/jss/pageEdit/notesSection';
-import { WithOptional } from '../../lib/tsUtil';
+import { WithOptional } from '../../../../shared/tsUtil';
 
 export interface INotesSectionProps {
   parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
