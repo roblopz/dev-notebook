@@ -2,7 +2,10 @@ import { createMuiTheme } from '@material-ui/core/styles';
 
 export const MainTheme = createMuiTheme({
   typography: {
-    useNextVariants: true
+    useNextVariants: true,
+    h6: {
+      fontSize: '1.1rem'
+    }
   },
   transitions: {
     loadingIn: 50,

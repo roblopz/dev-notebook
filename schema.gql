@@ -10,10 +10,23 @@ input CreatePageInput {
   notes: [NewPageNoteInput!]!
 }
 
+input CursorPaginationInput {
+  take: Int = 10
+  after: ID
+}
+
 """
 The javascript `Date` as string. Type represents date and time as the ISO Date string.
 """
 scalar DateTime
+
+input FindTagsInput {
+  pageSize: Int = 10
+  current: Int = 1
+  search: String
+  sortBy: SortTagsBy = PageUpdatedAt
+  sortOrder: SortOrder = Descending
+}
 
 type Mutation {
   createPage(page: CreatePageInput!): PageType
@@ -57,6 +70,11 @@ type NoteType {
   updatedAt: DateTime
 }
 
+input OffsetPaginationInput {
+  pageSize: Int = 10
+  current: Int = 1
+}
+
 type PageNotebookType {
   _id: ID!
   name: String!
@@ -73,6 +91,23 @@ type PageType {
 }
 
 type Query {
+  pages: [PageType!]
+  notebooks(sort: Int = 1, name: String): [NotebookType!]
+  getTag(tag: String!): TagsType
+  findTags(options: FindTagsInput): [TagsType!]
+}
+
+enum SortOrder {
+  Ascending
+  Descending
+}
+
+enum SortTagsBy {
+  PageUpdatedAt
+  PageCreatedAt
+}
+
+type TagsType {
+  tag: String!
   pages: [PageType!]!
-  notebooks: [NotebookType!]
 }

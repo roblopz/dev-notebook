@@ -36,7 +36,7 @@ module.exports = {
     contentBase: appPaths.webBase,
     port: 7001,
     hot: true,
-    hotOnly: false,
+    hotOnly: true,
     historyApiFallback: true
   },
   plugins: [

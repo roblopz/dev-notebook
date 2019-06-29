@@ -1,57 +1,66 @@
 import gql from 'graphql-tag';
-import { IPage } from '../../models';
 
 export const fragments = {
   fullPage: gql`
-    fragment FullPage on Page {
-      _id,
-      title,
-      tags,
+    fragment fullPage on PageType {
+      _id
+      title
+      tags
+      createdAt
+      updatedAt
       notebook {
-        _id,
-        name,
-        createdAt,
-        updatedAt
+        _id
+        name
       }
       notes {
-        _id,
-        header,
-        subheader,
-        content,
+        header
+        subheader
+        content
         snippet {
-          code,
+          code
           language
-        },
-        createdAt,
+        }
+        createdAt
         updatedAt
       }
-      createdAt,
-      updatedAt
     }
   `
 };
 
-export interface IGetPageResultsData {
-  pages: IPage[];
-}
+export type PageNoteResult = {
+  header: string;
+  subheader?: string;
+  content?: string;
+  snippet?: {
+    code?: string;
+    language?: string;
+  };
+  createdAt: Date;
+  updatedAt?: Date;
+};
 
-export interface IGetAllPageTagsData {
-  tags: string[];
-}
+export type PageResult = {
+  _id: string;
+  title: string;
+  tags?: string[];
+  createAt: Date;
+  updatedAt?: Date;
+  notebook: {
+    _id: string;
+    name: string;
+  };
+  notes: PageNoteResult[]
+};
+
+export type GetPagesResult = { pages: PageResult[] };
 
 export const queries = {
-  GET_PAGE_RESULTS: gql`
+  GET_PAGES: gql`
     {
       pages {
-        ...FullPage
+        ...fullPage
       }
     }
     ${fragments.fullPage}
-  `,
-
-  GET_ALL_PAGE_TAGS: gql`
-  {
-    tags: allPageTags
-  }
   `
 };

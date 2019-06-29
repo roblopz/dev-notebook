@@ -6,7 +6,7 @@ import { ApolloProvider as ApolloHooksProvider } from 'react-apollo-hooks';
 
 import { client } from './app/graphql';
 import { ThemeProvider } from '@material-ui/styles';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 import { MainTheme } from './app/styles/material/theme';
@@ -21,10 +21,10 @@ const Root = () => (
   <ApolloProvider client={client}>
     <ApolloHooksProvider client={client}>
       <ThemeProvider theme={MainTheme}>
-        <BrowserRouter>
+        <HashRouter>
           <CssBaseline />
           <AppIndex />
-        </BrowserRouter>
+        </HashRouter>
       </ThemeProvider>
     </ApolloHooksProvider>
   </ApolloProvider>

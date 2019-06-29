@@ -1,6 +1,5 @@
 import { Resolver, Query, FieldResolver, Root, Arg, Mutation, Ctx } from "type-graphql";
 import { PageType, PageNotebookType } from "../types/pageType";
-import { NotebookType } from "../types/notebookType";
 
 import PageCollection from '../../DAL/collections/pageCollection';
 import NotebookCollection from "../../DAL/collections/notebookCollection";
@@ -10,15 +9,19 @@ import { IPage, INote, INotebook } from "../../DAL/models";
 @Resolver(of => PageType)
 export class PageResolver {
 
-  @Query(returns => [PageType])
+  @Query(returns => [PageType], { nullable: true })
   public async pages(): Promise<Array<Omit<PageType, 'notebook'>>> {
     return await PageCollection.findAsync<IPage>({});
   }
 
-  @FieldResolver(of => NotebookType)
-  public async notebook(@Root() parent: IPage): Promise<NotebookType> {
-    const notebook = await NotebookCollection.findOneAsync<INotebook>({ _id: parent.notebook });
-    return notebook;
+  @FieldResolver(of => PageNotebookType)
+  public async notebook(@Root() parent: PageType | IPage): Promise<PageNotebookType> {
+    // PageType
+    if (typeof parent.notebook === 'string') {
+      return await NotebookCollection.findOneAsync<INotebook>({ _id: parent.notebook });
+    } else { // PageType
+      return parent.notebook;
+    }
   }
 
   @Mutation(returns => PageType, { nullable: true })

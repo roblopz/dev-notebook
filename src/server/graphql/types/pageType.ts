@@ -21,7 +21,7 @@ export class PageType {
   public title: string;
 
   @Field(type => PageNotebookType)
-  public notebook: PageNotebookType;
+  public notebook: PageNotebookType | string;
 
   @Field(type => [String], { nullable: true })
   public tags?: string[];
