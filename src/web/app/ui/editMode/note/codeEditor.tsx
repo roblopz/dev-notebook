@@ -60,11 +60,11 @@ function CodeEditor({ snippet, hide, toggleHide, onChange, className }: ICodeEdi
             onChange={evt => toggleHide(!evt.target.checked)}
             classes={{ switchBase: classes.switchBase }} />
           } label="Code" className={classes.switchLabelWrapper}
-          classes={{ label: classes.switchLabelText }} />
+          classes={{ label: classes.switchLabelText, root: 'mb-0' }} />
       </div>
 
       <Collapse in={!hide}>
-        <select className="my-2" value={snippet.language}
+        <select className="mb-2" value={snippet.language}
           onChange={evt => onChange({ code: snippet.code, language: evt.target.value })}>
           {availableLanguages.map(language => (
             <option key={language.id} value={language.id}>{language.aliases[0]}</option>

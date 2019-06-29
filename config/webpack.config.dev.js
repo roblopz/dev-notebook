@@ -35,8 +35,8 @@ module.exports = {
   devServer: {
     contentBase: appPaths.webBase,
     port: 7001,
-    hot: true,
-    hotOnly: true,
+    hot: false,
+    hotOnly: false,
     historyApiFallback: true
   },
   plugins: [

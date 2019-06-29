@@ -13,14 +13,25 @@ import MenuList from '@material-ui/core/MenuList';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
 
+const headerIconStyle = {
+  padding: 5,
+  position: 'absolute' as 'absolute',
+  marginTop: 6
+};
+
 const getStyles = (theme: any) => ({
   root: {
-    position: 'absolute' as 'absolute',
-    right: theme.spacing(1),
-    zIndex: theme.zIndex.mobileStepper
+    display: 'flex',
+    position: 'relative' as 'relative',
+    padding: '0 25px'
   },
-  headerIcon: {
-    padding: 5
+  headerIconRight: {
+    ...headerIconStyle,
+    right: -8
+  },
+  headerIconLeft: {
+    ...headerIconStyle,
+    left: 0
   },
   settingsMenuRoot: {
     left: '-70px !important',
@@ -37,17 +48,17 @@ const getStyles = (theme: any) => ({
   }
 });
 
-export interface INoteHeaderProps {
+export interface INoteHeaderIconsProps {
   setCollapsed: (collapsed: boolean) => void;
   isCollapsed: boolean;
   onNoteDelete: () => void;
 }
 
-function NoteHeader({
+function NoteHeaderIcons({
   setCollapsed,
   isCollapsed,
   onNoteDelete
- }: INoteHeaderProps) {
+ }: INoteHeaderIconsProps) {
   const classes = makeStyles(getStyles)({});
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
@@ -86,7 +97,7 @@ function NoteHeader({
 
   return (
     <div className={classes.root}>
-      <IconButton className={classes.headerIcon} color="default"
+      <IconButton className={classes.headerIconLeft} color="default"
         onClick={toggleSettings} buttonRef={iconButtonRef}>
         <MoveVertIcon fontSize="small" />
       </IconButton>
@@ -109,7 +120,7 @@ function NoteHeader({
         )}
       </Popper>
 
-      <IconButton className={classes.headerIcon} color="default"
+      <IconButton className={classes.headerIconRight} color="default"
         onClick={() => setCollapsed(!isCollapsed)}>
         {isCollapsed ? <AddIcon fontSize="small" /> : <RemoveIcon fontSize="small" />}
       </IconButton>
@@ -117,10 +128,10 @@ function NoteHeader({
   );
 }
 
-NoteHeader.propTypes = {
+NoteHeaderIcons.propTypes = {
   setCollapsed: PropTypes.func.isRequired,
   isCollapsed: PropTypes.bool.isRequired,
   onNoteDelete: PropTypes.func.isRequired
 };
 
-export default NoteHeader;
+export default NoteHeaderIcons;

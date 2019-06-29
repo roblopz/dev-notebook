@@ -11,7 +11,7 @@ import { IPage } from '../../../models';
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 
 // Components
-import NoteHeader from './noteHeader';
+import HeaderIcons from './headerIcons';
 import RichEditor from './richEditor';
 import CodeEditor from './codeEditor';
 
@@ -73,10 +73,11 @@ function Note({
 
   return (
     <Paper className={classnames(classes.root, { [className]: !!className })}>
-      <NoteHeader onNoteDelete={onNoteDelete} isCollapsed={isCollapsed} setCollapsed={setIsCollapsed} />
-
-      <TextField label="Note header" className="mt-2 mb-2" fullWidth margin="dense"
-        {...mapMuiFormikdProps(`${parent}[${index}].header`, values, errors, touched)} onChange={handleChange} />
+      <div className="d-flex">
+        <TextField placeholder="Note header" className="flex-grow-1 mt-1 mb-2 mr-3" fullWidth margin="dense"
+          {...mapMuiFormikdProps(`${parent}[${index}].header`, values, errors, touched)} onChange={handleChange} />
+        <HeaderIcons onNoteDelete={onNoteDelete} isCollapsed={isCollapsed} setCollapsed={setIsCollapsed} />
+      </div>
 
       <Collapse in={!isCollapsed}>
         <TextField className="mt-1" label="Subheader"

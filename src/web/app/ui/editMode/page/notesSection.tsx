@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/styles';
 import { IPage, INote } from '../../../models';
 import AddIcon from '@material-ui/icons/AddRounded';
 import Fab from '@material-ui/core/Fab';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
 import Note from '../note';
@@ -12,34 +13,25 @@ import { WithOptional } from '../../../../../shared/tsUtil';
 
 export interface INotesSectionProps {
   parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
-  className?: string;
   defaultNote: { readonly value: INote };
 }
 
 const getStyles = (theme: any) => {
   return {
-    notesSection: {
-      flexGrow: 1,
-      maxHeight: '100%',
-      backgroundColor: theme.palette.grey[100],
-      overflow: 'hidden',
-      overflowY: 'auto' as 'auto',
-      borderBottomRightRadius: 4
+    root: {
+      width: '100%',
+      position: 'relative' as 'relative'
     },
     addNoteIcon: {
       position: 'absolute' as 'absolute',
       float: 'right' as 'right',
       bottom: theme.spacing(1),
-      right: theme.spacing(1)
+      right: theme.spacing(2)
     }
   };
 };
 
-function NotesSection({
-  className,
-  parentFormBag,
-  defaultNote
-}: INotesSectionProps) {
+function NotesSection({ parentFormBag, defaultNote }: INotesSectionProps) {
   const classes = makeStyles(getStyles)({});
   
   const emptyNotesError = parentFormBag.errors.notes && typeof parentFormBag.errors.notes === 'string' ? (
@@ -49,7 +41,7 @@ function NotesSection({
   ) : null;
 
   return (
-    <section className={classes.notesSection + (className ? ` ${className}` : '')}>
+    <div className={classes.root}>
       {emptyNotesError}
 
       <FieldArray name="notes" render={(arrayHelpers: FieldArrayRenderProps) => (
@@ -60,18 +52,19 @@ function NotesSection({
             }} formikBag={parentFormBag} parent="notes" />
           ))}
 
-          <Fab className={classes.addNoteIcon} color="primary" size="small"
-            onClick={() => arrayHelpers.push(defaultNote.value)}>
-            <AddIcon />
-          </Fab>
+          <Tooltip title="Add note" placement="top">
+            <Fab className={classes.addNoteIcon} color="primary" size="small"
+              onClick={() => arrayHelpers.push(defaultNote.value)}>
+              <AddIcon />
+            </Fab>
+          </Tooltip>
         </React.Fragment>
       )} />
-    </section>
+    </div>
   );
 }
 
 NotesSection.propTypes = {
-  className: PropTypes.string,
   parentFormBag: PropTypes.object.isRequired,
   defaultNote: PropTypes.object.isRequired
 };

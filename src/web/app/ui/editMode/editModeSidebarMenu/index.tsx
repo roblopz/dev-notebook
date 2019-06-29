@@ -27,6 +27,7 @@ const getStyles = (theme: Theme) => {
       flexDirection: 'column' as 'column',
       borderRadius: 0,
       width: sidebarMenuWidth,
+      minWidth: sidebarMenuWidth,
       zIndex: theme.zIndex.modal + 1
     },
     drawerRoot: {

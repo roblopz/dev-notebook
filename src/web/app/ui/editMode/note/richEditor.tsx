@@ -69,7 +69,7 @@ function RichEditor({ value, hide, toggleHide, onChange, className }: IRichEdito
           onChange={evt => toggleHide(!evt.target.checked)}
           classes={{ switchBase: classes.switchBase }} />
         } label="Content" className={classes.switchLabelWrapper}
-        classes={{ label: classes.switchLabelText }} />
+        classes={{ label: classes.switchLabelText, root: 'mb-0' }} />
 
       <Collapse in={!hide}>
         <div className={classes.editorWrapper}>
