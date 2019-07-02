@@ -1,14 +1,24 @@
-import ApolloClient from "apollo-boost";
-import { MutationDefs } from "./@client/mutations";
-import { QueryDefs } from './@client/queries';
+import ApolloClient from "apollo-client";
+import { createHttpLink } from 'apollo-link-http';
 
-import { cache } from './@client/appState';
+import { cache, IAppState, initialState } from './appState';
+
+// @client mutation imports
+import { setPageFiltersResolver } from './mutations/setPageFilters';
 
 export const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
+  link: createHttpLink({ uri: 'http://localhost:4000/graphql' }),
   cache,
   resolvers: {
-    Query: QueryDefs,
-    Mutation: MutationDefs
+    Query: {},
+    Mutation: {
+      ...setPageFiltersResolver
+    }
   }
+});
+
+client.onResetStore(async () => {
+  client.writeData<IAppState>({
+    data: initialState
+  });
 });

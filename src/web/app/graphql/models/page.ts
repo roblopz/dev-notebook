@@ -6,7 +6,7 @@ export interface IPage {
   _id: mongoID;
   title: string;
   notebook: INotebook;
-  tags: string[];
+  tags?: string[];
   notes: INote[];
   createdAt?: Date;
   updatedAt?: Date;

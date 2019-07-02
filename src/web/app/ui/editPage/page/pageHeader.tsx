@@ -9,10 +9,10 @@ import { useApolloClient } from 'react-apollo-hooks';
 
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../../common/matAutocomple';
-import { IPage, INotebook } from '../../../models';
+import { IPage, INotebook } from '../../../graphql/models';
 import { WithOptional, OptionalExceptFor } from '../../../../../shared/tsUtil';
-import { GetNotebooksByNameResult, GetNotebooksByNameArgs, queries } from '../../../graphql/queries/notebookQueries';
 import { Theme } from '@material-ui/core';
+import { NotebooksByNameResp, NotebooksByNameArgs, notebooksByNameQuery } from '../../../graphql/queries/notebooksByName';
 
 type NotebookOption = WithOptional<INotebook, '_id'> | OptionalExceptFor<INotebook, 'name'>;
 
@@ -75,8 +75,8 @@ function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
   }, []);
 
   const loadNotebooks = useCallback(async (inputValue): Promise<Array<IOption<NotebookOption>>> => {
-    const { data: { notebooks } } = await apolloClient.query<GetNotebooksByNameResult, GetNotebooksByNameArgs>({
-      query: queries.GET_NOTEBOOKS_BY_NAME,
+    const { data: { notebooks = [] } = {} } = await apolloClient.query<NotebooksByNameResp, NotebooksByNameArgs>({
+      query: notebooksByNameQuery,
       variables: { name: inputValue }
     });
 

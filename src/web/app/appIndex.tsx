@@ -4,7 +4,7 @@ import { Switch, Route } from 'react-router-dom';
 
 // Components
 import Main from './ui/main';
-import EditMode from './ui/editMode';
+import EditPage from './ui/editPage';
 import CurrentTheme from './ui/currentTheme';
 import { appRoutes } from './lib/routes';
 
@@ -13,7 +13,7 @@ class App extends React.Component {
     return (
       <Switch>
         <Route exact path={appRoutes.theme} component={CurrentTheme} />
-        <Route exact path={appRoutes.addPage} component={EditMode} />
+        <Route exact path={appRoutes.addPage} component={EditPage} />
         <Route component={Main} />
       </Switch>
     );

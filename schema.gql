@@ -80,6 +80,17 @@ type PageNotebookType {
   name: String!
 }
 
+input PagesInput {
+  pageSize: Int = 10
+  current: Int = 1
+  search: String
+  notebook: String
+  tags: [String!]
+  language: String
+  sortBy: SortPagesBy = PageUpdatedAt
+  sortOrder: SortOrder = Descending
+}
+
 type PageType {
   _id: ID!
   title: String!
@@ -91,7 +102,7 @@ type PageType {
 }
 
 type Query {
-  pages: [PageType!]
+  pages(options: PagesInput): [PageType!]
   notebooks(sort: Int = 1, name: String): [NotebookType!]
   getTag(tag: String!): TagsType
   findTags(options: FindTagsInput): [TagsType!]
@@ -100,6 +111,11 @@ type Query {
 enum SortOrder {
   Ascending
   Descending
+}
+
+enum SortPagesBy {
+  PageUpdatedAt
+  PageCreatedAt
 }
 
 enum SortTagsBy {

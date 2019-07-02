@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import classnames from 'classnames';
 import useRouter from 'use-react-router';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
@@ -12,15 +13,20 @@ import SearchIcon from '@material-ui/icons/SearchRounded';
 import CollectionsIcon from '@material-ui/icons/CollectionsBookmarkRounded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTags, faCode } from '@fortawesome/free-solid-svg-icons';
+import { useQuery, useMutation } from 'react-apollo-hooks';
 
 import DrawerSearch from './drawerSearch';
 import DrawerNotebooks from './drawerNotebooks';
 import DrawerTags from './drawerTags';
 import DrawerLanguages from './drawerLanguages';
 import { appRoutes } from '../../../lib/routes';
+import { sharedStyles } from '../../../styles/shared';
+import { PageFiltersResp, pageFiltersQuery } from '../../../graphql/queries/pageFilters';
+import { SetPageFiltersInput, setPageFiltersMutation } from '../../../graphql/mutations/setPageFilters';
+import { PageFilters } from '../../../graphql/appState';
 
 const sidebarMenuWidth = 60;
-const getStyles = (theme: Theme) => {
+export const getStyles = (theme: Theme) => {
   return {
     root: {
       display: 'flex',
@@ -37,7 +43,8 @@ const getStyles = (theme: Theme) => {
       paddingRight: theme.spacing(2),
       width: 300,
       borderRadius: 0,
-      height: '100%'
+      minHeight: '100%',
+      overflow: 'auto'
     },
     addIconBlock: {
       display: 'flex',
@@ -53,6 +60,9 @@ const getStyles = (theme: Theme) => {
       '&:hover': {
         backgroundColor: theme.palette.action.hover
       }
+    },
+    iconBlockSelected: {
+      color: sharedStyles.hoverColor
     },
     iconTooltip: {
       position: 'relative' as 'relative',
@@ -72,12 +82,27 @@ function SidebarMenu() {
   const [drawerOption, setDrawerOption] = useState<DrawerOption>(null);
   const { history } = useRouter();
 
+  const { data: { pageFilters } } = useQuery<PageFiltersResp>(pageFiltersQuery);
+  const setPageFilters = useMutation<void, SetPageFiltersInput>(setPageFiltersMutation);
+
+  const setFilters = useCallback((pageFilters: PageFilters) => {
+    setPageFilters({
+      variables: { pageFilters }
+    });
+    
+    setDrawerOption(null);
+  }, [pageFilters]);
+
+  const clearNotebookFilter = useCallback(() => {
+    setFilters({ ...pageFilters, notebook: null });
+  }, []);
+
   const getDrawerComponent = useCallback(() => {
     switch (drawerOption) {
       case 'search':
-        return <DrawerSearch />;
+        return <DrawerSearch filters={pageFilters} setFilters={setFilters} />;
       case 'notebooks':
-        return <DrawerNotebooks />;
+        return <DrawerNotebooks filters={pageFilters} setFilters={setFilters} close={() => setDrawerOption(null)} />;
       case 'tags':
         return <DrawerTags />;
       case 'languages':
@@ -108,12 +133,14 @@ function SidebarMenu() {
         </div>
       </Tooltip>
       <Tooltip title="Notebooks" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={() => setDrawerOption('notebooks')}>
+        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: !!pageFilters.notebook })}
+          onClick={() => setDrawerOption('notebooks')}>
           <CollectionsIcon />
         </div>
       </Tooltip>
       <Tooltip title="All notes" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={() => setDrawerOption(null)}>
+        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: !pageFilters.notebook })}
+          onClick={clearNotebookFilter}>
           <ClearAllIcon />
         </div>
       </Tooltip>

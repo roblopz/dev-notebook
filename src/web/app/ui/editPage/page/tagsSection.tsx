@@ -6,7 +6,7 @@ import { FormikProps } from 'formik';
 
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../../common/matAutocomple';
-import { IPage } from '../../../models';
+import { IPage } from '../../../graphql/models';
 import { WithOptional } from '../../../../../shared/tsUtil';
 import { Theme } from '@material-ui/core';
 

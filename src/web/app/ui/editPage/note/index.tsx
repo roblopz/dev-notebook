@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/styles';
 import { FormikProps } from 'formik';
 import Collapse from '@material-ui/core/Collapse';
 
-import { IPage } from '../../../models';
+import { IPage } from '../../../graphql/models';
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 
 // Components

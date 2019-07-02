@@ -5,6 +5,6 @@ export interface INotebook {
   _id: mongoID;
   name: string;
   pages: IPage[];
-  createdAt?: Date;
+  createdAt: Date;
   updatedAt?: Date;
 }

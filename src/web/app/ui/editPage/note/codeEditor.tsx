@@ -7,7 +7,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import Collapse from '@material-ui/core/Collapse';
 
-import { ISnippet } from '../../../models';
+import { ISnippet } from '../../../graphql/models';
 
 const getStyles = (theme: any) => ({
   languagesSelect: {

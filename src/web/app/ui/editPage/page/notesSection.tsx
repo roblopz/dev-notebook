@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { FormikProps, FieldArray, FieldArrayRenderProps } from 'formik';
 import { makeStyles } from '@material-ui/styles';
-import { IPage, INote } from '../../../models';
+import { IPage, INote } from '../../../graphql/models';
 import AddIcon from '@material-ui/icons/AddRounded';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -25,7 +25,7 @@ const getStyles = (theme: any) => {
     addNoteIcon: {
       position: 'absolute' as 'absolute',
       float: 'right' as 'right',
-      bottom: theme.spacing(1),
+      bottom: theme.spacing(2),
       right: theme.spacing(2)
     }
   };

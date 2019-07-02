@@ -1,27 +1,32 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Formik, FormikProps } from 'formik';
 import Paper from '@material-ui/core/Paper';
-import { useMutation } from 'react-apollo-hooks';
-
+import { useMutation, useApolloClient } from 'react-apollo-hooks';
 import { yup } from '../../../lib/validation/yup';
+import StrictEventEmitter from 'strict-event-emitter-types';
+import { EventEmitter } from 'events';
 
 // Components
-import { IPage, INote, ISnippet, INotebook } from '../../../models';
+import { IPage, INote, ISnippet, INotebook } from '../../../graphql/models';
 import PageHeader from './pageHeader';
 import NotesSection from './notesSection';
 import { Omit } from '../../../../../shared/tsUtil';
-import { GetPagesResult, queries } from '../../../graphql/queries/pageQueries';
-import { CreatePageInput, mutations, CreatePageResult } from '../../../graphql/mutations/pageMutations';
 import TagsSection from './tagsSection';
+import { CreatePageInput, createPageMutation, CreatePageResp } from '../../../graphql/mutations/createPage';
 
 export type FormPage = IPage | { notebook: FormNotebook };
 export type FormNotebook = Partial<INotebook> & Pick<INotebook, 'name'>;
 
-const getStyles = (theme: any) => {
-  const pageInfoLeftPadding = theme.spacing(2);
+export interface IPageFormStatus {
+  isDirty?: boolean;
+  isValid?: boolean;
+  isSubmitting?: boolean;
+  errors?: any;
+}
 
+const getStyles = (theme: any) => {
   return {
     root: {
       display: 'flex',
@@ -38,7 +43,7 @@ const getStyles = (theme: any) => {
     pageHeader: {
       display: 'flex',
       justifyContent: 'flex-end',
-      padding: '4px 16px',
+      padding: '4px 16px 3px',
       width: '100%',
       borderBottom: '1px solid rgba(0, 0, 0, 0.12)'
     },
@@ -56,9 +61,7 @@ const getStyles = (theme: any) => {
   };
 };
 
-
 const noteValidationSchema = yup.object().shape<INote>({
-  _id: yup.string().nullable().notRequired(),
   header: yup.string().required(),
   subheader: yup.string().nullable().notRequired(),
   snippet: yup.object().shape<ISnippet>({
@@ -99,12 +102,17 @@ const defaultNote = {
 
 export interface IPageEditProps {
   onClose: () => void;
+  formStatus: React.MutableRefObject<IPageFormStatus>;
+  triggerSubmit: React.MutableRefObject<() => Promise<any>>;
 }
 
-function PageEdit({ onClose }: IPageEditProps) {
+function PageEdit({ onClose, formStatus, triggerSubmit }: IPageEditProps) {
   const classes = makeStyles(getStyles)({});
   const currentPage = {} as IPage;
-  const createPage = useMutation<CreatePageResult, CreatePageInput>(mutations.CREATE_PAGE);
+  const createPage = useMutation<CreatePageResp, CreatePageInput>(createPageMutation);
+  const _submitForm = useRef(null);
+  const submitEmitter = useRef<StrictEventEmitter<EventEmitter, { submitDone: () => void }>>(new EventEmitter());
+  const apolloClient = useApolloClient();
 
   const getInitialValues = useCallback((): Omit<IPage, '_id'> => ({
     title: currentPage.title || '',
@@ -115,25 +123,46 @@ function PageEdit({ onClose }: IPageEditProps) {
   }), []);
 
   const onPageSubmit = useCallback(async (values: IPage, bag: FormikProps<IPage>) => {
-    await createPage({
-      variables: { input: { ...values, notebook: values.notebook.name } },
-      update: (cache, { data: { newPage } }) => {
-        const { pages } = cache.readQuery<GetPagesResult>({ query: queries.GET_PAGES });
-        cache.writeQuery<GetPagesResult>({ query: queries.GET_PAGES, data: { pages: [...pages, newPage] } });
-      }
-    });
+    try {
+      await createPage({
+        variables: { input: { ...values, notebook: values.notebook.name } },
+        update: async () => {
+          await apolloClient.resetStore();
+          submitEmitter.current.emit('submitDone');
+        }
+      });
+    } catch { } // tslint:disable-line no-empty
+  }, []);
 
-    onClose();
+  useEffect(() => {
+    triggerSubmit.current = async () => {
+      if (!formStatus.current.isValid) {
+        await _submitForm.current();
+        return Promise.reject(formStatus.current.errors);
+      } else if (!formStatus.current.isDirty) {
+        return Promise.resolve();
+      } else {
+        await _submitForm.current();
+        await new Promise((resolve) => {
+          submitEmitter.current.removeAllListeners();
+          submitEmitter.current.on('submitDone', resolve);
+        });
+      }
+    };
+
+    return () => submitEmitter.current.removeAllListeners();
   }, []);
 
   return (
     <Paper className={classes.root}>
       <Formik initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={onPageSubmit}>
         {(formikBag) => {
-          const { handleSubmit, setFieldValue, values, errors, touched } = formikBag;
+          const { dirty, isValid, isSubmitting, submitForm, errors } = formikBag;
+          formStatus.current = { isDirty: dirty, isSubmitting, isValid, errors };
+          _submitForm.current = submitForm;
 
           return (
-            <form onSubmit={handleSubmit} className={classes.mainPageForm}>
+            <form className={classes.mainPageForm}>
               <section className={classes.pageHeader}>
                 <PageHeader parentFormBag={formikBag} />
               </section>
@@ -141,7 +170,6 @@ function PageEdit({ onClose }: IPageEditProps) {
               <section className={classes.notesSection}>
                 <NotesSection parentFormBag={formikBag} defaultNote={defaultNote} />
               </section>
-
               <section className={classes.tagsSection}>
                 <TagsSection parentFormBag={formikBag} />
               </section>
@@ -154,7 +182,9 @@ function PageEdit({ onClose }: IPageEditProps) {
 }
 
 PageEdit.propTypes = {
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  formStatus: PropTypes.shape({ current: PropTypes.object }).isRequired,
+  triggerSubmit: PropTypes.shape({ current: PropTypes.func }).isRequired
 };
 
 export default PageEdit;
