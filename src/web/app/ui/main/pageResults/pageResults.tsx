@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { useQuery, useApolloClient } from 'react-apollo-hooks';
+import { useQuery, useMutation } from 'react-apollo-hooks';
 
 import PageCard from './pageCard';
 import { PageFiltersResp, pageFiltersQuery } from '../../../graphql/queries/pageFilters';
 import { PagesResp, PagesInput, pagesQuery } from '../../../graphql/queries/pages';
-import { IAppState } from '../../../graphql/appState';
+import { setPagesCountMutation, SetPagesCountResp, SetPagesCountInput } from '../../../graphql/mutations/setPagesCount';
 
 const getStyles = (theme: any) => {
   return {
@@ -17,20 +17,15 @@ const getStyles = (theme: any) => {
 
 function PageResults() {
   const classes = makeStyles(getStyles)({});
-  const apolloClient = useApolloClient();
 
+  const setPagesCount = useMutation<SetPagesCountResp, SetPagesCountInput>(setPagesCountMutation);
   const { data: { pageFilters } } = useQuery<PageFiltersResp>(pageFiltersQuery);
-  const { __typename, ...pagesInput } = pageFilters;
   const { data: { pages = [] } } = useQuery<PagesResp, PagesInput>(pagesQuery, {
-    variables: { options: pagesInput }
+    variables: { options: pageFilters }
   });
 
   useEffect(() => {
-    apolloClient.writeData<Pick<IAppState, 'showingPagesCount'>>({
-      data: {
-        showingPagesCount: pages.length
-      }
-    });
+    setPagesCount({ variables: { count: pages.length } });
   }, [pages.length]);
 
   return (

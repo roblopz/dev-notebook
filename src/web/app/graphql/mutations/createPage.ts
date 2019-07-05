@@ -21,9 +21,12 @@ export type CreatePageInput = {
       header: string;
       subheader?: string;
       content?: string;
+      plainTextContent?: string;
+      htmlContent?: string;
       snippet?: {
         language?: string;
         code?: string;
+        htmlCode?: string;
       };
       hideContent?: boolean;
       hideSnippet?: boolean;

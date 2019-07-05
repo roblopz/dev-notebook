@@ -35,12 +35,15 @@ type Mutation {
 input NewNoteSnippetInput {
   language: String
   code: String
+  htmlCode: String
 }
 
 input NewPageNoteInput {
   header: String!
   subheader: String
   content: String
+  plainTextContent: String
+  htmlContent: String
   snippet: NewNoteSnippetInput
   hideContent: Boolean
   hideSnippet: Boolean
@@ -54,15 +57,26 @@ type NotebookType {
   updatedAt: DateTime
 }
 
+input NoteSearch {
+  search: String
+  code: Boolean
+  content: Boolean
+  header: Boolean
+  subheader: Boolean
+}
+
 type NoteSnippetType {
   language: String
   code: String
+  htmlCode: String
 }
 
 type NoteType {
   header: String!
   subheader: String
   content: String
+  plainTextContent: String
+  htmlContent: String
   snippet: NoteSnippetType
   hideContent: Boolean
   hideSnippet: Boolean
@@ -80,10 +94,16 @@ type PageNotebookType {
   name: String!
 }
 
+input PageSearch {
+  search: String
+  title: Boolean
+}
+
 input PagesInput {
   pageSize: Int = 10
   current: Int = 1
-  search: String
+  pageSearch: PageSearch
+  noteSearch: NoteSearch
   notebook: String
   tags: [String!]
   language: String

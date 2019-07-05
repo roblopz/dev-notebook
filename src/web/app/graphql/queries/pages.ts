@@ -12,19 +12,33 @@ export const pagesQuery = gql`
   ${pageFragment}
 `;
 
-export type PagesInput = {
-  options: {
+export type PagesInputOptions = {
+  pageSearch?: {
     search?: string;
-    notebook?: string;
-    tags?: string[];
-    language?: string;
-    sortBy?: 'PageUpdatedAt' | 'PageCreatedAt';
-    sortOrder?: 'Ascending' | 'Descending';
-    pageSize?: number;
-    current?: number;
+    title?: boolean;
+  };
+  noteSearch?: {
+    search?: string;
+    code?: boolean;
+    content?: boolean;
+    header?: boolean;
+    subheader?: boolean;
   }
+  notebook?: string;
+  tags?: string[];
+  language?: string;
+  sortBy?: 'PageUpdatedAt' | 'PageCreatedAt';
+  sortOrder?: 'Ascending' | 'Descending';
+  pageSize?: number;
+  current?: number;
 };
 
+export type PagesInput = {
+  options: PagesInputOptions;
+};
+
+export type PageType = Merge<IPage, { notes: INote[] }>;
+
 export type PagesResp = {
-  pages: Array<Merge<IPage, { notes: INote[] }>>;
+  pages: PageType[];
 };

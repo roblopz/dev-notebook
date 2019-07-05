@@ -1,8 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
-import SidebarMenu from './sidebarMenu';
-import PageResults from './pageResults';
+import SidebarMenu from './sidebarMenu/sidebarMenu';
+import PageResults from './pageResults/pageResults';
 import { Theme } from '@material-ui/core';
 
 export const getAppRootWrapperStyle = (theme: Theme) => ({

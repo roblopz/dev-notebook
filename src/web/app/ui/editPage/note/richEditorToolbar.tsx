@@ -101,6 +101,27 @@ const customStyles = {
   ]
 };
 
+const fontStyleDefs = customStyles.fonts[0];
+const colorStyleDefs = customStyles.colors[0];
+
+const toHtmlFontStyles = Object.keys(fontStyleDefs).reduce((acc, curr) => {
+  acc[curr] = { style: fontStyleDefs[curr] };
+  return acc;
+}, {});
+
+const toHtmlColorStyles = Object.keys(colorStyleDefs).reduce((acc, curr) => {
+  acc[curr] = { style: colorStyleDefs[curr] };
+  return acc;
+}, {});
+
+const { fonts, colors, ...otherStyleDefs } = customStyles;
+const toHtmlOtherStyles = Object.keys(otherStyleDefs).reduce((acc, curr) => {
+  acc[curr] = { style: otherStyleDefs[curr] };
+  return acc;
+}, {});
+
+export const toHtmlInlineStyles = { ...toHtmlFontStyles, ... toHtmlColorStyles, ...toHtmlOtherStyles };
+
 function RichEditorToolbar({
   EditorPlugins: { StyleToPropsPlugin, RichButtonsPlugin }
 }: IRichEditorPropTypes

@@ -17,9 +17,11 @@ const getRandomInt = (equalOrBelowTo: number) => Math.floor(Math.random() * equa
 // tslint:disable-next-line
 const noteContent = '{"blocks":[{"key":"3onjc","text":"Hola! So here\'s the deal, between open source and my day job and life and what not, I have a lot to manage, so I use a GitHub bot to automate a few things here and there. This particular GitHub bot is going to mark this as stale because it has not had recent activity for a while. It will be closed if no further activity occurs in a few days. Do not take this personally--seriously--this is a completely automated action. If this is a mistake, just make a comment, DM me, send a carrier pidgeon, or a smoke signal.","type":"unstyled","depth":0,"inlineStyleRanges":[],"entityRanges":[],"data":{}}],"entityMap":{}}';
 
+const seed = false;
+
 (async () => {
   const isFilled = !!(await PageCollection.findOneAsync({}));
-  if (!isFilled) {
+  if (!isFilled && seed) {
 
     const notebooksLength = 3;
     const notebookNames = [];

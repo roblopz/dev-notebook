@@ -2,9 +2,21 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 const cache = new InMemoryCache();
 
 export type PageFilters = {
-  __typename: 'PageFilters';
-  search?: string;
-  notebook?: string | number;
+  __typename?: 'PageFilters';
+  pageSearch: {
+    __typename?: 'PageFilters_PageSearch'
+    search?: string;
+    title?: boolean;
+  };
+  noteSearch: {
+    __typename?: 'PageFilters_NoteSearch'
+    search?: string;
+    code?: boolean;
+    content?: boolean;
+    header?: boolean;
+    subheader?: boolean;
+  }
+  notebook?: string;
   tags?: string[];
   language?: string;
   sortBy?: 'PageUpdatedAt' | 'PageCreatedAt';
@@ -15,13 +27,25 @@ export type PageFilters = {
 
 export interface IAppState {
   pageFilters: PageFilters;
-  showingPagesCount: number;
+  pagesCount: number;
 }
 
 export const initialState: IAppState = {
   pageFilters: {
     __typename: 'PageFilters',
-    search: null,
+    pageSearch: {
+      __typename: 'PageFilters_PageSearch',
+      search: null,
+      title: true
+    },
+    noteSearch: {
+      __typename: 'PageFilters_NoteSearch',
+      search: null,
+      code: true,
+      content: true,
+      header: true,
+      subheader: true
+    },
     language: null,
     notebook: null,
     tags: null,
@@ -30,7 +54,7 @@ export const initialState: IAppState = {
     sortBy: 'PageUpdatedAt',
     sortOrder: 'Descending'
   },
-  showingPagesCount: 0
+  pagesCount: 0
 };
 
 cache.writeData({ data: initialState });

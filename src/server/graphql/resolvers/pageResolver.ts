@@ -5,12 +5,15 @@ import PageCollection from '../../DAL/collections/pageCollection';
 import NotebookCollection from "../../DAL/collections/notebookCollection";
 import { CreatePageInput } from "../inputs/createPage";
 import { IPage, INote, INotebook } from "../../DAL/models";
-import { PagesInput, SortPagesBy } from "../inputs/getPages";
+import { PagesInput, SortPagesBy } from "../inputs/pages";
 import { SortOrder } from "../inputs/common";
+import { nameof } from "../../../shared/tsUtil";
+
+const getSearchRgx = search =>
+  search.length < 3 ? new RegExp(`^${search}`, 'i') : new RegExp(`${search}`, 'i');
 
 @Resolver(of => PageType)
 export class PageResolver {
-
   @Query(returns => [PageType], { nullable: true })
   public async pages(
     @Arg('options', { nullable: true }) options: PagesInput = new PagesInput()
@@ -18,22 +21,29 @@ export class PageResolver {
     const query: any = {};
     const sort = {} as any;
 
-    if (options.search) {
-      const match = options.search.length < 3 ? new RegExp(`^${options.search}`, 'i') : new RegExp(`${options.search}`, 'i');
-      query.title = match;
-      // query.notes = {
-      //   $elemMatch: {
-      //     $or: [{ header: match, subheader: match, 'snippet.code': match }]
-      //   }
-      // };
-    }
+    const pageSearchVal = options.pageSearch && options.pageSearch.search;
+    const pageSearchInProps = options.pageSearch &&
+      Object.keys(options.pageSearch || {})
+            .filter(k => k !== nameof('search', options.pageSearch) && !!options.pageSearch[k])
+            .map(k => k);
 
-    // if (options.language) {
-    //   if (options.search)
-    //     query.notes.$elemMatch.$or.unshift({ 'snippet.language': options.language });
-    //   else
-    //     query.notes.$elemMatch = { 'snippet.language': options.language };
-    // }
+    const noteSearchVal = options.noteSearch && options.noteSearch.search;
+    const noteSearchInProps = options.noteSearch &&
+      Object.keys(options.noteSearch || {})
+            .filter(k => k !== nameof('search', options.noteSearch) && !!options.noteSearch[k])
+            .map(k => {
+              if (k === nameof('code', options.noteSearch))
+                return 'snippet.code';
+              return k;
+            });
+
+    if (pageSearchVal && pageSearchInProps.length) {
+      pageSearchInProps.forEach(pageProp => query[pageProp] = getSearchRgx(pageSearchVal));
+    } else if (noteSearchVal && noteSearchInProps.length) {
+      const noteSearchOr = [];
+      noteSearchInProps.forEach(noteProp => noteSearchOr.push({ [noteProp]: getSearchRgx(noteSearchVal) }));
+      query.notes = { $elemMatch: { $or: noteSearchOr } };
+    }
 
     if (options.notebook)
       query.notebook = options.notebook;

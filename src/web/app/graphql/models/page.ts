@@ -1,9 +1,8 @@
-import { mongoID } from "./shared";
 import { INotebook } from "./notebook";
 import { INote } from "./note";
 
 export interface IPage {
-  _id: mongoID;
+  _id: string;
   title: string;
   notebook: INotebook;
   tags?: string[];

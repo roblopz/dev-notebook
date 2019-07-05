@@ -9,6 +9,9 @@ export class NoteSnippetType {
 
   @Field({ nullable: true })
   public code?: string;
+
+  @Field({ nullable: true })
+  public htmlCode?: string;
 }
 
 @ObjectType()
@@ -21,6 +24,12 @@ export class NoteType {
 
   @Field({ nullable: true })
   public content?: string;
+
+  @Field({ nullable: true })
+  public plainTextContent?: string;
+
+  @Field({ nullable: true })
+  public htmlContent?: string;
 
   @Field(type => NoteSnippetType, { nullable: true })
   public snippet?: NoteSnippetType;

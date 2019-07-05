@@ -6,7 +6,17 @@ export const pageFiltersQuery = gql`
     pageFilters @client {
       language
       notebook
-      search
+      pageSearch {
+        search
+        title
+      }
+      noteSearch {
+        search
+        code
+        content
+        header
+        subheader
+      }
       tags
       current
       pageSize

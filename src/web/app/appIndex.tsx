@@ -3,9 +3,9 @@ import * as React from 'react';
 import { Switch, Route } from 'react-router-dom';
 
 // Components
-import Main from './ui/main';
-import EditPage from './ui/editPage';
-import CurrentTheme from './ui/currentTheme';
+import Main from './ui/main/main';
+import EditPage from './ui/editPage/editPage';
+import CurrentTheme from './ui/currentTheme/currentTheme';
 import { appRoutes } from './lib/routes';
 
 class App extends React.Component {

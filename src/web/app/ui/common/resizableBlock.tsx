@@ -130,9 +130,24 @@ function ResizableBlock({
   useEffect(() => {
     // Allow container to finish adjusting
     setTimeout(() => {
+      let height = containerRef.current.offsetHeight;
+      let width = containerRef.current.offsetWidth;
+
+      if (limits && limits.heightMax)
+        height = height > limits.heightMax ? limits.heightMax : height;
+
+      if (limits && limits.heightMin)
+        height = height < limits.heightMin ? limits.heightMin : height;
+
+      if (limits && limits.widthMax)
+        width = width > limits.widthMax ? limits.widthMax : width;
+
+      if (limits && limits.widthMin)
+        width = width < limits.widthMin ? limits.widthMin : width;
+
       setResizable({
-        height: containerRef.current.offsetHeight,
-        width: containerRef.current.offsetWidth,
+        height,
+        width,
         draggingClientX: 0,
         draggingClientY: 0
       });

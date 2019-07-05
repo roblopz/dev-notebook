@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useQuery, useMutation } from 'react-apollo-hooks';
+import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
 import List from '@material-ui/core/List';
@@ -37,24 +37,24 @@ const getStyles = (theme: Theme) => {
 
 export interface IDrawerNotebooksProps {
   close: () => void;
-  filters: PageFilters;
+  pageFilters: PageFilters;
   setFilters: (pageFilters: PageFilters) => void;
 }
 
-function DrawerNotebooks({ filters, setFilters, close }: IDrawerNotebooksProps) {
+function DrawerNotebooks({ pageFilters, setFilters, close }: IDrawerNotebooksProps) {
   const classes = makeStyles(getStyles)({});
   const [searchVal, setSearchVal] = useState('');
   const { data: { notebooks = [] } } = useQuery<DrawerNotebooksResp>(drawerNotebooksQuery);
 
   const setNotebookFilter = useCallback(async (notebookID: string) => {
-    setFilters({ ...filters, notebook: notebookID });
-  }, [filters, setFilters]);
+    setFilters({ ...pageFilters, notebook: notebookID });
+  }, [pageFilters, setFilters]);
 
   return (
     <React.Fragment>
       <div className={classes.titleWrapper}>
         <Typography variant="h6">Notebooks</Typography>
-        {filters.notebook ?
+        {pageFilters.notebook ?
           <Button size="small" onClick={() => setNotebookFilter(null)}>
             <FontAwesomeIcon icon={faTimes} className={classes.clearIcon} /> Clear
           </Button> : null}
@@ -74,7 +74,7 @@ function DrawerNotebooks({ filters, setFilters, close }: IDrawerNotebooksProps) 
             return null;
 
           return (
-            <ListItem key={idx} button selected={n._id === filters.notebook}
+            <ListItem key={idx} button selected={n._id === pageFilters.notebook}
               className={classes.notebookItem} classes={{ selected: classes.notebookItemSelected }}
               onClick={() => setNotebookFilter(n._id)}>
               <ListItemText primary={n.name} primaryTypographyProps={{ variant: 'body1' }} />
@@ -88,7 +88,7 @@ function DrawerNotebooks({ filters, setFilters, close }: IDrawerNotebooksProps) 
 
 DrawerNotebooks.propTypes = {
   close: PropTypes.func.isRequired,
-  filters: PropTypes.object.isRequired,
+  pageFilters: PropTypes.object.isRequired,
   setFilters: PropTypes.func.isRequired
 };
 

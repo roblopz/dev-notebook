@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import StrictEventEmitter from 'strict-event-emitter-types';
-import { EventEmitter } from 'events';
+import React, { useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
@@ -17,70 +15,76 @@ import Grow from '@material-ui/core/Grow';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
+import { BehaviorSubject } from 'rxjs';
+import { skip } from 'rxjs/operators';
+import { Theme } from '@material-ui/core';
 
 import NoteCard from './noteCard';
-import { PageResult } from '../../../graphql/queries/pageQueries';
+import { PageType } from '../../../graphql/queries/pages';
 
-const getStyles = (theme: any) => {
+const getStyles = (theme: Theme) => {
   return {
-    headerBtn: {
-      padding: 8
+    cardHeader: {
+      padding: 12
+    },
+    cardActions: {
+      margin: 0
     },
     pageTitle: {
       fontSize: '1.2rem'
+    },
+    expandButton: {
+      padding: 5
+    },
+    pageSettingsItem: {
+      padding: '6px 8px',
+      minHeight: 'unset'
     }
   };
 };
 
 export interface IPageCardProps {
-  page: PageResult;
+  page: PageType;
   className?: string;
-}
-
-export interface IPageCardEvents {
-  expandNotes: (expand: boolean) => void;
 }
 
 function PageCard({ page, className }: IPageCardProps) {
   const classes = makeStyles(getStyles)({});
   const [settingsOpen, setSettinsOpen] = useState(false);
-  const [pageExpander, setPageExpander] = useState({ expandPage: false, expandingNotes: false });
+  const [collapsePage, setCollapsePage] = useState(false);
   const settingsBtnRef = useRef(null);
-  const pageEmitter = useRef<StrictEventEmitter<EventEmitter, IPageCardEvents>>(new EventEmitter());
-
-  useEffect(() => {
-    return () => pageEmitter.current.removeAllListeners();
-  }, []);
+  const collapseNotesSubject = useRef<BehaviorSubject<boolean>>(new BehaviorSubject(false).pipe(skip(1)) as BehaviorSubject<boolean>);
+  const pendingToCollapseNotes = useRef(false);
 
   const toggleSettingsOpen = useCallback(() => {
     setSettinsOpen(!settingsOpen);
   }, [settingsOpen]);
-
-  const expandNotes = useCallback((expandNotes: boolean) => {
-    if (!pageExpander.expandPage && expandNotes) {
-      setPageExpander({ expandPage: true, expandingNotes: true });
+  
+  const collapseNotes = useCallback((collapse: boolean) => {
+    // Collapse page first
+    if (!collapsePage) {
+      pendingToCollapseNotes.current = true;
+      setCollapsePage(true);
       return;
     }
 
-    pageEmitter.current.emit('expandNotes', expandNotes);
-  }, [pageExpander]);
-
-  const onPageExpanded = useCallback(() => {
-    if (pageExpander.expandingNotes) {
-      setPageExpander({ expandPage: true, expandingNotes: false });
-      pageEmitter.current.emit('expandNotes', true);
-    }
-  }, [pageExpander]);
+    collapseNotesSubject.current.next(collapse);
+  }, [collapsePage]);
 
   return (
     <Card className={className}>
-      <CardHeader title={page.title} subheader={page.notebook.name}
+      <CardHeader title={page.title} subheader={page.notebook.name} className={classes.cardHeader}
+        classes={{ title: classes.pageTitle, action: classes.cardActions }}
         action={
           <React.Fragment>
-            <IconButton className={classes.headerBtn} buttonRef={settingsBtnRef}
-              onClick={toggleSettingsOpen}>
+            <IconButton className={classes.expandButton} buttonRef={settingsBtnRef} onClick={toggleSettingsOpen}>
               <MoreVertIcon fontSize="small" />
             </IconButton>
+
+            <IconButton onClick={() => setCollapsePage(!collapsePage)} className={classes.expandButton}>
+              {collapsePage ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            </IconButton>
+
             <Popper open={settingsOpen} anchorEl={settingsBtnRef.current} transition>
               {({ TransitionProps }) => (
                 <ClickAwayListener onClickAway={(evt) => {
@@ -89,28 +93,35 @@ function PageCard({ page, className }: IPageCardProps) {
                 }}>
                   <Grow {...TransitionProps}>
                     <Paper>
-                      <MenuList>
-                        <MenuItem className="py-1" onClick={() => expandNotes(true)}>Expand all notes</MenuItem>
-                        <MenuItem className="py-1" onClick={() => expandNotes(false)}>Collapse all notes</MenuItem>
+                      <MenuList className="p-0">
+                        <MenuItem className={classes.pageSettingsItem} onClick={() => {
+                          collapseNotes(true);
+                          toggleSettingsOpen();
+                        }}> Expand notes </MenuItem>
+
+                        {collapsePage ?
+                        <MenuItem className={classes.pageSettingsItem} onClick={() => {
+                          collapseNotes(false);
+                          toggleSettingsOpen();
+                        }}> Collapse notes</MenuItem> : null}
                       </MenuList>
                     </Paper>
                   </Grow>
                 </ClickAwayListener>
               )}
             </Popper>
-
-            <IconButton className={classes.headerBtn}
-              onClick={() => setPageExpander({ expandPage: !pageExpander.expandPage, expandingNotes: false })}>
-              {pageExpander.expandPage ? <ExpandLessIcon fontSize="small" />
-                : <ExpandMoreIcon fontSize="small" />}
-            </IconButton>
           </React.Fragment>
-        } className="py-3" classes={{ title: classes.pageTitle }} />
+        } />
 
-      <Collapse in={pageExpander.expandPage} timeout="auto" onEntered={onPageExpanded}>
+      <Collapse in={collapsePage} timeout="auto" onEntered={() => {
+        if (pendingToCollapseNotes.current) {
+          collapseNotes(true);
+          pendingToCollapseNotes.current = false;
+        }
+      }}>
         <CardContent className="pt-0 pb-3">
           {page.notes.map((n, idx) => (
-            <NoteCard key={idx} note={n} pageEmitter={pageEmitter.current}
+            <NoteCard key={idx} note={n} collapseSubject={collapseNotesSubject.current}
               className={(idx + 1) < page.notes.length ? 'mb-3' : ''} />
           ))}
         </CardContent>

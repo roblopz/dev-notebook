@@ -12,7 +12,7 @@ import { OptionProps } from 'react-select/lib/components/Option';
 import { MenuItemProps } from '@material-ui/core/MenuItem';
 import { PaperProps } from '@material-ui/core/Paper';
 
-import { SelectComponents, components } from 'react-select/lib/components';
+import { SelectComponents } from 'react-select/lib/components';
 
 const getStyles = (theme: any) => ({
   menuContainer: {

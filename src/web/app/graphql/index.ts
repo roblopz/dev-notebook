@@ -1,19 +1,17 @@
 import ApolloClient from "apollo-client";
 import { createHttpLink } from 'apollo-link-http';
+import { from } from "apollo-link";
 
 import { cache, IAppState, initialState } from './appState';
-
-// @client mutation imports
-import { setPageFiltersResolver } from './mutations/setPageFilters';
+import { mutationResolvers } from './mutations';
+import { cleanTypenameLink } from "./links/cleanTypename";
 
 export const client = new ApolloClient({
-  link: createHttpLink({ uri: 'http://localhost:4000/graphql' }),
+  link: from([cleanTypenameLink, createHttpLink({ uri: 'http://localhost:4000/graphql' })]),
   cache,
   resolvers: {
     Query: {},
-    Mutation: {
-      ...setPageFiltersResolver
-    }
+    Mutation: mutationResolvers
   }
 });
 

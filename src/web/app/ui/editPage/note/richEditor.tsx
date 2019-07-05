@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import propTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -8,9 +8,11 @@ import DraftJsEditor from 'draft-js-plugins-editor';
 import { EditorState } from 'draft-js';
 import createRichButtonsPlugin from 'draft-js-richbuttons-plugin';
 import { convertFromRaw, convertToRaw } from 'draft-js';
+import { stateToHTML } from 'draft-js-export-html';
+import { Subscription, Subject } from 'rxjs';
 
 import createStyleToPropsPlugin from 'draft-js-styletoprops-plugin';
-import RichEditorToolbar from './richEditorToolbar';
+import RichEditorToolbar, { toHtmlInlineStyles } from './richEditorToolbar';
 
 const getStyles = (theme: any) => ({
   editorWrapper: {
@@ -33,45 +35,71 @@ const getStyles = (theme: any) => ({
   }
 });
 
-export interface IRichEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-  hide: boolean;
-  toggleHide: (hide: boolean) => void;
-}
-
 const richButtonsPlugin = createRichButtonsPlugin();
 const styleToPropsPlugin = createStyleToPropsPlugin();
 
-function RichEditor({ value, hide, toggleHide, onChange, className }: IRichEditorProps) {
+export interface IPersisteValues {
+  editorContent: string;
+  plainTextContent: string;
+  htmlContent: string;
+  hideContent: boolean;
+}
+
+export interface IRichEditorProps {
+  value: string;
+  className?: string;
+  hide: boolean;
+  persistValues: ({ editorContent, plainTextContent, htmlContent, hideContent }: IPersisteValues) => void;
+  persistSubject: Subject<void>;
+}
+
+function RichEditor({ value, hide, className, persistValues, persistSubject }: IRichEditorProps) {
   const classes = makeStyles(getStyles)({});
-  const [editorState, setEditorState] = useState(
-    value ? EditorState.createWithContent(convertFromRaw(JSON.parse(value))) : EditorState.createEmpty()
-  );
+  const [state, setState] = useState({
+    hidecontent: hide,
+    editorState: value ? EditorState.createWithContent(convertFromRaw(JSON.parse(value))) : EditorState.createEmpty()
+  });
 
   const onEditorChange = useCallback((editorState: EditorState) => {
-    setEditorState(editorState);
-    const editorContent = editorState.getCurrentContent();
-
-    if (editorContent.hasText()) {
-      const serializedEditorContent = JSON.stringify(convertToRaw(editorContent));
-      onChange(serializedEditorContent);
-    } else {
-      onChange('');
-    }
+    setState(state => ({ editorState, hidecontent: state.hidecontent }));
   }, []);
+
+  const onHideChange = useCallback((hide: boolean) => {
+    setState(state => ({ editorState: state.editorState, hidecontent: hide }));
+  }, []);
+
+  const persistSubscription = useRef<Subscription>(null);
+  useEffect(() => {
+    persistSubscription.current = persistSubject.subscribe(() => {
+      const editorContent = state.editorState.getCurrentContent();
+
+      let serializedEditorContent = '';
+      if (editorContent.hasText())
+        serializedEditorContent = JSON.stringify(convertToRaw(editorContent));
+      
+      const htmlContent = stateToHTML(state.editorState.getCurrentContent(), { inlineStyles: toHtmlInlineStyles });
+
+      persistValues({
+        editorContent: serializedEditorContent,
+        plainTextContent: state.editorState.getCurrentContent().getPlainText(),
+        htmlContent: htmlContent && htmlContent !== '<p><br></p>' ? htmlContent  : '',
+        hideContent: state.hidecontent
+      });
+    });
+
+    return () => persistSubscription.current && persistSubscription.current.unsubscribe();
+  }, [state, persistSubject, persistValues]);
 
   return (
     <div {...{ ...(className && { className }) }}>
       <FormControlLabel control={
-        <Switch checked={!hide} color="primary"
-          onChange={evt => toggleHide(!evt.target.checked)}
+        <Switch checked={!state.hidecontent} color="primary"
+          onChange={evt => onHideChange(!evt.target.checked)}
           classes={{ switchBase: classes.switchBase }} />
         } label="Content" className={classes.switchLabelWrapper}
         classes={{ label: classes.switchLabelText, root: 'mb-0' }} />
 
-      <Collapse in={!hide}>
+      <Collapse in={!state.hidecontent}>
         <div className={classes.editorWrapper}>
           <RichEditorToolbar EditorPlugins={{
             StyleToPropsPlugin: styleToPropsPlugin,
@@ -79,7 +107,7 @@ function RichEditor({ value, hide, toggleHide, onChange, className }: IRichEdito
           }} />
 
           <div className="p-2">
-            <DraftJsEditor editorState={editorState}
+            <DraftJsEditor editorState={state.editorState}
               onChange={onEditorChange}
               plugins={[styleToPropsPlugin, richButtonsPlugin]} />
           </div>
@@ -90,7 +118,11 @@ function RichEditor({ value, hide, toggleHide, onChange, className }: IRichEdito
 }
 
 RichEditor.propTypes = {
-  className: propTypes.string
+  value: propTypes.string,
+  className: propTypes.string,
+  hide: propTypes.bool,
+  persistValues: propTypes.func.isRequired,
+  persistSubject: propTypes.object.isRequired
 };
 
 export default RichEditor;

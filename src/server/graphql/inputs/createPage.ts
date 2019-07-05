@@ -10,6 +10,9 @@ export class NewNoteSnippetInput {
 
   @Field({ nullable: true })
   public code: string;
+
+  @Field({ nullable: true })
+  public htmlCode?: string;
 }
 
 @InputType()
@@ -22,6 +25,12 @@ export class NewPageNoteInput {
 
   @Field({ nullable: true })
   public content?: string;
+
+  @Field({ nullable: true })
+  public plainTextContent?: string;
+
+  @Field({ nullable: true })
+  public htmlContent?: string;
 
   @Field({ nullable: true })
   @IsOptional()

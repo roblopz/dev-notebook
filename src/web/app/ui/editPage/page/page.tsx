@@ -1,12 +1,11 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import { Formik, FormikProps } from 'formik';
+import { Formik } from 'formik';
 import Paper from '@material-ui/core/Paper';
 import { useMutation, useApolloClient } from 'react-apollo-hooks';
 import { yup } from '../../../lib/validation/yup';
-import StrictEventEmitter from 'strict-event-emitter-types';
-import { EventEmitter } from 'events';
+import { Subject } from 'rxjs';
 
 // Components
 import { IPage, INote, ISnippet, INotebook } from '../../../graphql/models';
@@ -15,6 +14,7 @@ import NotesSection from './notesSection';
 import { Omit } from '../../../../../shared/tsUtil';
 import TagsSection from './tagsSection';
 import { CreatePageInput, createPageMutation, CreatePageResp } from '../../../graphql/mutations/createPage';
+import { Theme } from '@material-ui/core';
 
 export type FormPage = IPage | { notebook: FormNotebook };
 export type FormNotebook = Partial<INotebook> & Pick<INotebook, 'name'>;
@@ -26,7 +26,7 @@ export interface IPageFormStatus {
   errors?: any;
 }
 
-const getStyles = (theme: any) => {
+const getStyles = (theme: Theme) => {
   return {
     root: {
       display: 'flex',
@@ -35,10 +35,10 @@ const getStyles = (theme: any) => {
       height: '100%'
     },
     mainPageForm: {
+      overflow: 'auto',
       display: 'flex',
       height: '100%',
       flexDirection: 'column' as 'column',
-      overflow: 'hidden'
     },
     pageHeader: {
       display: 'flex',
@@ -53,7 +53,10 @@ const getStyles = (theme: any) => {
       flexGrow: 1
     },
     tagsSection: {
+      position: 'sticky' as 'sticky',
+      bottom: 0,
       display: 'flex',
+      backgroundColor: theme.palette.background.paper,
       width: '100%',
       padding: '0 16px',
       borderTop: '1px solid rgba(0, 0, 0, 0.12)'
@@ -66,10 +69,13 @@ const noteValidationSchema = yup.object().shape<INote>({
   subheader: yup.string().nullable().notRequired(),
   snippet: yup.object().shape<ISnippet>({
     language: yup.string().required(),
-    code: yup.string()
+    code: yup.string(),
+    htmlCode: yup.string()
   }),
   hideContent: yup.bool().nullable(),
   hideSnippet: yup.bool().nullable(),
+  htmlContent: yup.string(),
+  plainTextContent: yup.string(),
   content: yup.string(),
   createdAt: yup.date().nullable().notRequired(),
   updatedAt: yup.date().nullable().notRequired()
@@ -93,26 +99,28 @@ const defaultNote = {
       header: '',
       subheader: '',
       content: '',
+      plainTextContent: '',
+      htmlContent: '',
       hideContent: true,
       hideSnippet: true,
-      snippet: { language: 'javascript', code: '' }
+      snippet: { language: 'javascript', code: '', htmlCode: '' }
     };
   }
 };
 
 export interface IPageEditProps {
-  onClose: () => void;
+  submitSubject: Subject<void>;
   formStatus: React.MutableRefObject<IPageFormStatus>;
-  triggerSubmit: React.MutableRefObject<() => Promise<any>>;
+  onSubmitted: () => void;
 }
 
-function PageEdit({ onClose, formStatus, triggerSubmit }: IPageEditProps) {
+function Page({ formStatus, submitSubject, onSubmitted }: IPageEditProps) {
   const classes = makeStyles(getStyles)({});
   const currentPage = {} as IPage;
   const createPage = useMutation<CreatePageResp, CreatePageInput>(createPageMutation);
-  const _submitForm = useRef(null);
-  const submitEmitter = useRef<StrictEventEmitter<EventEmitter, { submitDone: () => void }>>(new EventEmitter());
   const apolloClient = useApolloClient();
+  const beforeSubmitSubject = useRef(new Subject<void>());
+  const formikRef = useRef<Formik<Omit<IPage, '_id'>>>(null);
 
   const getInitialValues = useCallback((): Omit<IPage, '_id'> => ({
     title: currentPage.title || '',
@@ -122,44 +130,44 @@ function PageEdit({ onClose, formStatus, triggerSubmit }: IPageEditProps) {
       : [Object.assign(defaultNote.value, { hideContent: false, hideSnippet: false })]
   }), []);
 
-  const onPageSubmit = useCallback(async (values: IPage, bag: FormikProps<IPage>) => {
+  const submitPage = useCallback(async () => {
     try {
+      // Trigger onBefore submit to set child values
+      // (som operations are too heavy to set with the usual onChange pattern)
+      await beforeSubmitSubject.current.next();
+      const formValues = formikRef.current.getFormikBag().values;
+
       await createPage({
-        variables: { input: { ...values, notebook: values.notebook.name } },
+        variables: { input: { ...formValues, notebook: formValues.notebook.name } },
         update: async () => {
           await apolloClient.resetStore();
-          submitEmitter.current.emit('submitDone');
+          onSubmitted();
         }
       });
-    } catch { } // tslint:disable-line no-empty
+    } catch {} // tslint:disable-line no-empty
   }, []);
 
   useEffect(() => {
-    triggerSubmit.current = async () => {
+    const submitSubscription = submitSubject.subscribe(async () => {
       if (!formStatus.current.isValid) {
-        await _submitForm.current();
-        return Promise.reject(formStatus.current.errors);
+        // Phantom submit invalid form, just to show validation errors
+        formikRef.current.submitForm();
       } else if (!formStatus.current.isDirty) {
-        return Promise.resolve();
+        onSubmitted();
       } else {
-        await _submitForm.current();
-        await new Promise((resolve) => {
-          submitEmitter.current.removeAllListeners();
-          submitEmitter.current.on('submitDone', resolve);
-        });
+        await submitPage();
       }
-    };
+    });
 
-    return () => submitEmitter.current.removeAllListeners();
+    return () => submitSubscription.unsubscribe();
   }, []);
 
   return (
     <Paper className={classes.root}>
-      <Formik initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={onPageSubmit}>
+      <Formik ref={formikRef} initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={() => {}}>
         {(formikBag) => {
-          const { dirty, isValid, isSubmitting, submitForm, errors } = formikBag;
+          const { dirty, isValid, isSubmitting, errors } = formikBag;
           formStatus.current = { isDirty: dirty, isSubmitting, isValid, errors };
-          _submitForm.current = submitForm;
 
           return (
             <form className={classes.mainPageForm}>
@@ -168,7 +176,7 @@ function PageEdit({ onClose, formStatus, triggerSubmit }: IPageEditProps) {
               </section>
 
               <section className={classes.notesSection}>
-                <NotesSection parentFormBag={formikBag} defaultNote={defaultNote} />
+                <NotesSection beforeSubmitSubject={beforeSubmitSubject.current} parentFormBag={formikBag} defaultNote={defaultNote} />
               </section>
               <section className={classes.tagsSection}>
                 <TagsSection parentFormBag={formikBag} />
@@ -181,10 +189,10 @@ function PageEdit({ onClose, formStatus, triggerSubmit }: IPageEditProps) {
   );
 }
 
-PageEdit.propTypes = {
-  onClose: PropTypes.func.isRequired,
+Page.propTypes = {
   formStatus: PropTypes.shape({ current: PropTypes.object }).isRequired,
-  triggerSubmit: PropTypes.shape({ current: PropTypes.func }).isRequired
+  submitSubject: PropTypes.object.isRequired,
+  onSubmitted: PropTypes.func.isRequired
 };
 
-export default PageEdit;
+export default Page;

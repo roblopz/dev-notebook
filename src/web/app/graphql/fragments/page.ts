@@ -15,9 +15,12 @@ export const pageFragment = gql`
       header
       subheader
       content
+      plainTextContent
+      htmlContent
       snippet {
         code
         language
+        htmlCode
       }
       createdAt
       updatedAt

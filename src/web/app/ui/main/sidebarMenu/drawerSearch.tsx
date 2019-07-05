@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
+import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
@@ -15,6 +16,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 import { PageFilters } from '../../../graphql/appState';
+import { pageFiltersQuery, PageFiltersResp } from '../../../graphql/queries/pageFilters';
+import { initialState } from '../../../graphql/appState';
 
 export const searchInputStyles = (theme: Theme) => ({
   searchInputWrapper: {
@@ -67,63 +70,90 @@ const getStyles = (theme: Theme) => {
     tabLabel: {
       paddingRight: theme.spacing(1),
       paddingLeft: theme.spacing(1),
-      textTransform: 'none' as 'none'
+      textTransform: 'none' as 'none',
+      minWidth: 'unset'
     },
     ...searchInputStyles(theme),
     ...getDrawerTitleStyles(theme)
   };
 };
 
-export interface ISearchNotesIn {
-  content?: boolean;
-  code?: boolean;
-  header?: boolean;
-  subheader?: boolean;
+export interface ISearchNotesOptions {
+  content: boolean;
+  code: boolean;
+  header: boolean;
+  subheader: boolean;
 }
 
-const initialSearchIn: ISearchNotesIn = { code: true, content: true, header: true, subheader: true };
-
 export interface IDrawerSearchProps {
-  filters: PageFilters;
+  pageFilters: PageFilters;
   setFilters: (filters: PageFilters) => void;
 }
 
-function DrawerSearch({ filters, setFilters }: IDrawerSearchProps) {
+function DrawerSearch({ pageFilters, setFilters }: IDrawerSearchProps) {
   const classes = makeStyles(getStyles)({});
-  const [searchVal, setSearchVal] = useState(filters.search || '');
-  const [searchNotesIn, _setSearchNotesIn] = useState<ISearchNotesIn>(initialSearchIn);
+  const [pageSearchVal, setPageSearchVal] = useState(pageFilters.pageSearch.search || '');
+  const [noteSearchVal, setNoteSearchVal] = useState(pageFilters.noteSearch.search || '');
 
-  const setSearchNotesIn = useCallback((key: keyof ISearchNotesIn) => {
+  const [searchNotesIn, _setSearchNotesIn] = useState<ISearchNotesOptions>({
+    code: pageFilters.noteSearch.code,
+    content: pageFilters.noteSearch.content,
+    header: pageFilters.noteSearch.header,
+    subheader: pageFilters.noteSearch.subheader
+  });
+
+  const [tabNumber, setTabNumber] = React.useState(
+    pageFilters.pageSearch.search || !pageFilters.noteSearch.search ? 0 : 1
+  );
+
+  const setSearchNotesIn = useCallback((key: keyof ISearchNotesOptions) => {
     _setSearchNotesIn(currentSearchIn => {
-      let newSearchIn: ISearchNotesIn = { ...currentSearchIn, [key]: !currentSearchIn[key] };
+      let newSearchIn: ISearchNotesOptions = { ...currentSearchIn, [key]: !currentSearchIn[key] };
+
       if (Object.keys(newSearchIn).every(k => !newSearchIn[k]))
-        newSearchIn = initialSearchIn;
+        newSearchIn = { content: null, code: null, header: null, subheader: null };
+
       return newSearchIn;
     });
   }, []);
 
-  const setSearchFilter = useCallback((search: string) => {
-    if (!search)
-      setSearchVal('');
+  const clearAll = useCallback(() => {
+    setNoteSearchVal('');
+    setPageSearchVal('');
+    setFilters(initialState.pageFilters);
+  }, [setFilters]);
 
-    setFilters({ ...filters, search });
-  }, [filters, setFilters]);
+  const fireSearch = useCallback((type: 'note' | 'page') => {
+    if (type === 'note') {
+      setFilters({
+        pageSearch: initialState.pageFilters.pageSearch,
+        noteSearch: noteSearchVal ?
+          { ...searchNotesIn, search: noteSearchVal }
+          : initialState.pageFilters.noteSearch
+      });
+    } else { // page
+      setFilters({
+        noteSearch: initialState.pageFilters.noteSearch,
+        pageSearch: pageSearchVal ?
+          { title: true, search: pageSearchVal }
+          : initialState.pageFilters.pageSearch
+      });
+    }
+  }, [noteSearchVal, pageSearchVal, searchNotesIn, setFilters]);
 
-  const [tabNumber, setTabNumber] = React.useState(0);
-
-  const clearTrue = false;
+  const showClear = pageFilters.noteSearch.search || pageFilters.pageSearch.search;
 
   return (
     <React.Fragment>
-      {clearTrue ?
+      {showClear ?
         <div className={classes.clearButtonWrapper}>
-          <Button size="small" onClick={() => setSearchFilter(null)}>
+          <Button size="small" onClick={clearAll}>
             <FontAwesomeIcon icon={faTimes} className={classes.clearIcon} /> Clear
         </Button>
         </div> : null}
 
       <Tabs value={tabNumber} onChange={(evt, tabNumber) => setTabNumber(tabNumber)}
-        variant="fullWidth" className={classnames(classes.tabsRoot, { [classes.tabsRootNoClear]: !clearTrue })}>
+        variant="fullWidth" className={classnames(classes.tabsRoot, { [classes.tabsRootNoClear]: !showClear })}>
         <Tab label="Search pages" className={classes.tabLabel} />
         <Tab label="Search notes" className={classes.tabLabel} />
       </Tabs>
@@ -134,10 +164,10 @@ function DrawerSearch({ filters, setFilters }: IDrawerSearchProps) {
             <div className={classes.inputSearchIconWrapper}>
               <SearchIcon className={classes.inputSearchIcon} />
             </div>
-            <InputBase value={searchVal} onChange={evt => setSearchVal(evt.target.value)}
+            <InputBase value={pageSearchVal} onChange={evt => setPageSearchVal(evt.target.value)}
               onKeyDown={evt => {
                 if (evt.key === 'Enter')
-                  setSearchFilter(searchVal);
+                  fireSearch('page');
               }}
               className={classes.searchInput} placeholder="Search by title..." />
           </Paper>
@@ -149,10 +179,10 @@ function DrawerSearch({ filters, setFilters }: IDrawerSearchProps) {
             <div className={classes.inputSearchIconWrapper}>
               <SearchIcon className={classes.inputSearchIcon} />
             </div>
-            <InputBase value={searchVal} onChange={evt => setSearchVal(evt.target.value)}
+            <InputBase value={noteSearchVal} onChange={evt => setNoteSearchVal(evt.target.value)}
               onKeyDown={evt => {
                 if (evt.key === 'Enter')
-                  setSearchFilter(searchVal);
+                  fireSearch('note');
               }}
               className={classes.searchInput} placeholder="Search..." />
           </Paper>
@@ -184,7 +214,7 @@ function DrawerSearch({ filters, setFilters }: IDrawerSearchProps) {
 }
 
 DrawerSearch.propTypes = {
-  filters: PropTypes.object.isRequired,
+  pageFilters: PropTypes.object.isRequired,
   setFilters: PropTypes.func.isRequired
 };
 

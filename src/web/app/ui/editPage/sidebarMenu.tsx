@@ -11,9 +11,9 @@ import { faReply } from '@fortawesome/free-solid-svg-icons';
 import SaveIcon from '@material-ui/icons/SaveRounded';
 import Divider from '@material-ui/core/Divider';
 
-import { appRoutes } from '../../../lib/routes';
-import { getStyles as getSidebarStyles } from '../../main/sidebarMenu';
-import { IPageFormStatus } from '../page';
+import { appRoutes } from '../../lib/routes';
+import { getStyles as getSidebarStyles } from '../main/sidebarMenu/sidebarMenu';
+import { IPageFormStatus } from './page/page';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -25,7 +25,7 @@ type DrawerOption = 'back' | 'save';
 
 export interface IEditPageSidebarMenuProps {
   pageStatus: React.MutableRefObject<IPageFormStatus>;
-  triggerPageSubmit: React.MutableRefObject<() => Promise<any>>;
+  triggerPageSubmit: () => void;
 }
 
 function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebarMenuProps) {
@@ -49,11 +49,8 @@ function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebar
       history.push(appRoutes.index);
   }, []);
 
-  const onSave = useCallback(async () => {
-    try {
-      await triggerPageSubmit.current();
-      history.push(appRoutes.index);
-    } catch { } // tslint:disable-line no-empty   
+  const onSaveClick = useCallback(async () => {
+    triggerPageSubmit();
   }, []);
 
   return (
@@ -71,7 +68,7 @@ function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebar
       </Tooltip>
       <Divider />
       <Tooltip title="Save" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={onSave}>
+        <div className={classes.iconBlock} onClick={onSaveClick}>
           <SaveIcon />
         </div>
       </Tooltip>
@@ -81,7 +78,7 @@ function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebar
 
 EditPageSidebarMenu.propTypes = {
   pageStatus: PropTypes.shape({ current: PropTypes.object }).isRequired,
-  triggerPageSubmit: PropTypes.shape({ current: PropTypes.func }).isRequired
+  triggerPageSubmit: PropTypes.func.isRequired
 };
 
 export default EditPageSidebarMenu;

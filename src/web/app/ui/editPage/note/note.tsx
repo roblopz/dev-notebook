@@ -6,6 +6,7 @@ import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/styles';
 import { FormikProps } from 'formik';
 import Collapse from '@material-ui/core/Collapse';
+import { Subject } from 'rxjs';
 
 import { IPage } from '../../../graphql/models';
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
@@ -57,6 +58,7 @@ export interface INoteProps {
   index: number;
   className?: string;
   onNoteDelete?: () => void;
+  beforeSubmitSubject: Subject<void>;
 }
 
 function Note({
@@ -64,7 +66,8 @@ function Note({
   parent,
   index,
   className,
-  onNoteDelete
+  onNoteDelete,
+  beforeSubmitSubject
 }: INoteProps) {
   const classes = makeStyles(getStyles)({});
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -89,14 +92,22 @@ function Note({
         {/* Rich text editor */}
         <RichEditor className="mt-3" value={values.notes[index].content}
           hide={values.notes[index].hideContent}
-          toggleHide={(hide) => setFieldValue(`${parent}[${index}].hideContent`, hide)}
-          onChange={val => setFieldValue(`${parent}[${index}].content`, val)} />
+          persistSubject={beforeSubmitSubject}
+          persistValues={({ editorContent, hideContent, plainTextContent, htmlContent }) => {
+            setFieldValue(`${parent}[${index}].content`, editorContent);
+            setFieldValue(`${parent}[${index}].plainTextContent`, plainTextContent);
+            setFieldValue(`${parent}[${index}].htmlContent`, htmlContent);
+            setFieldValue(`${parent}[${index}].hideContent`, hideContent);
+          }} />
 
         {/* Code editor */}
         <CodeEditor className="mt-2" snippet={values.notes[index].snippet}
           hide={values.notes[index].hideSnippet}
-          toggleHide={(hide) => setFieldValue(`${parent}[${index}].hideSnippet`, hide)}
-          onChange={snippet => setFieldValue(`${parent}[${index}].snippet`, snippet)} />
+          persistSubject={beforeSubmitSubject}
+          persistValues={({ snippet, hideSnippet }) => {
+            setFieldValue(`${parent}[${index}].snippet`, snippet);
+            setFieldValue(`${parent}[${index}].hideSnippet`, hideSnippet);
+          }} />
       </Collapse>
     </Paper>
   );
@@ -107,7 +118,8 @@ Note.propTypes = {
   parent: PropTypes.string.isRequired,
   index: PropTypes.number.isRequired,
   formikBag: PropTypes.object.isRequired,
-  onNoteDelete: PropTypes.func.isRequired
+  onNoteDelete: PropTypes.func.isRequired,
+  beforeSubmitSubject: PropTypes.object.isRequired
 };
 
 export default Note;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { FormikProps, FieldArray, FieldArrayRenderProps } from 'formik';
 import { makeStyles } from '@material-ui/styles';
@@ -7,14 +7,10 @@ import AddIcon from '@material-ui/icons/AddRounded';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import { Subject } from 'rxjs';
 
-import Note from '../note';
+import Note from '../note/note';
 import { WithOptional } from '../../../../../shared/tsUtil';
-
-export interface INotesSectionProps {
-  parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
-  defaultNote: { readonly value: INote };
-}
 
 const getStyles = (theme: any) => {
   return {
@@ -23,15 +19,21 @@ const getStyles = (theme: any) => {
       position: 'relative' as 'relative'
     },
     addNoteIcon: {
-      position: 'absolute' as 'absolute',
+      position: 'fixed' as 'fixed',
       float: 'right' as 'right',
-      bottom: theme.spacing(2),
+      bottom: theme.spacing(7),
       right: theme.spacing(2)
     }
   };
 };
 
-function NotesSection({ parentFormBag, defaultNote }: INotesSectionProps) {
+export interface INotesSectionProps {
+  parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
+  defaultNote: { readonly value: INote };
+  beforeSubmitSubject: Subject<void>;
+}
+
+function NotesSection({ parentFormBag, defaultNote, beforeSubmitSubject }: INotesSectionProps) {
   const classes = makeStyles(getStyles)({});
   
   const emptyNotesError = parentFormBag.errors.notes && typeof parentFormBag.errors.notes === 'string' ? (
@@ -49,7 +51,8 @@ function NotesSection({ parentFormBag, defaultNote }: INotesSectionProps) {
           {parentFormBag.values.notes.map((note, idx) => (
             <Note key={idx} index={idx} onNoteDelete={() => {
               arrayHelpers.remove(idx);
-            }} formikBag={parentFormBag} parent="notes" />
+            }} formikBag={parentFormBag} parent="notes"
+              beforeSubmitSubject={beforeSubmitSubject} />
           ))}
 
           <Tooltip title="Add note" placement="top">
@@ -66,7 +69,8 @@ function NotesSection({ parentFormBag, defaultNote }: INotesSectionProps) {
 
 NotesSection.propTypes = {
   parentFormBag: PropTypes.object.isRequired,
-  defaultNote: PropTypes.object.isRequired
+  defaultNote: PropTypes.object.isRequired,
+  beforeSubmitSubject: PropTypes.object.isRequired
 };
 
 export default NotesSection;

@@ -23,7 +23,7 @@ import { appRoutes } from '../../../lib/routes';
 import { sharedStyles } from '../../../styles/shared';
 import { PageFiltersResp, pageFiltersQuery } from '../../../graphql/queries/pageFilters';
 import { SetPageFiltersInput, setPageFiltersMutation } from '../../../graphql/mutations/setPageFilters';
-import { PageFilters } from '../../../graphql/appState';
+import { PageFilters, initialState } from '../../../graphql/appState';
 
 const sidebarMenuWidth = 60;
 export const getStyles = (theme: Theme) => {
@@ -93,16 +93,16 @@ function SidebarMenu() {
     setDrawerOption(null);
   }, [pageFilters]);
 
-  const clearNotebookFilter = useCallback(() => {
-    setFilters({ ...pageFilters, notebook: null });
+  const clearAllFilters = useCallback(() => {
+    setFilters(initialState.pageFilters);
   }, []);
 
   const getDrawerComponent = useCallback(() => {
     switch (drawerOption) {
       case 'search':
-        return <DrawerSearch filters={pageFilters} setFilters={setFilters} />;
+        return <DrawerSearch pageFilters={pageFilters} setFilters={setFilters} />;
       case 'notebooks':
-        return <DrawerNotebooks filters={pageFilters} setFilters={setFilters} close={() => setDrawerOption(null)} />;
+        return <DrawerNotebooks pageFilters={pageFilters} setFilters={setFilters} close={() => setDrawerOption(null)} />;
       case 'tags':
         return <DrawerTags />;
       case 'languages':
@@ -140,7 +140,7 @@ function SidebarMenu() {
       </Tooltip>
       <Tooltip title="All notes" placement="right" classes={{ tooltip: classes.iconTooltip }}>
         <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: !pageFilters.notebook })}
-          onClick={clearNotebookFilter}>
+          onClick={clearAllFilters}>
           <ClearAllIcon />
         </div>
       </Tooltip>
