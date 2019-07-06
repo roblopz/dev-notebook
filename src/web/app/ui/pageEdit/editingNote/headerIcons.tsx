@@ -11,7 +11,7 @@ import ClickAwayListener from '@material-ui/core/ClickAwayListener';
 import Popper from '@material-ui/core/Popper';
 import MenuList from '@material-ui/core/MenuList';
 import IconButton from '@material-ui/core/IconButton';
-import Button from '@material-ui/core/Button';
+import classnames from 'classnames';
 
 const headerIconStyle = {
   padding: 5,
@@ -34,17 +34,23 @@ const getStyles = (theme: any) => ({
     left: 0
   },
   settingsMenuRoot: {
-    left: '-70px !important',
-    zIndex: theme.zIndex.modal + 1
+    zIndex: theme.zIndex.modal - 1
   },
   settingsMenu: {
-    padding: '4px 0',
+    padding: '0 !important',
     '& > li': {
-      padding: '8px 16px',
+      padding: '4px 8px',
       '&:focus': {
         backgroundColor: 'white'
       }
     }
+  },
+  settingsMenuItem: {
+    padding: '6px 8px',
+    minHeight: 'unset'
+  },
+  deletePageItem: {
+    color: theme.palette.secondary.main
   }
 });
 
@@ -61,39 +67,11 @@ function NoteHeaderIcons({
  }: INoteHeaderIconsProps) {
   const classes = makeStyles(getStyles)({});
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [deleteMode, setDeleteMode] = useState(false);
   const iconButtonRef = useRef(null);
 
   const toggleSettings = useCallback(() => {
     setSettingsOpen(!settingsOpen);
-    setDeleteMode(false);
   }, [settingsOpen]);
-
-  const deleteNoteMenuItem = useMemo(() => {
-    return (
-      <MenuItem className="d-flex flex-column align-items-start h-auto" onClick={() => setDeleteMode(true)}>
-        {deleteMode ? 'Delete note?' : 'Delete'}
-        {deleteMode ?
-          <div className="d-flex w-100 mt-2">
-            <Button className="p-0 mr-2" size="small" variant="outlined" color="primary"
-              onClick={(evt) => {
-                evt.preventDefault();
-                evt.stopPropagation();
-                setDeleteMode(false);
-              }}>
-              No
-            </Button>
-            <Button className="p-0" size="small" variant="outlined" color="secondary"
-              onClick={() => {
-                toggleSettings();
-                onNoteDelete();
-              }}>
-              Yes
-            </Button>
-          </div> : null}
-      </MenuItem>
-    );
-  }, [deleteMode, toggleSettings]);
 
   return (
     <div className={classes.root}>
@@ -111,8 +89,11 @@ function NoteHeaderIcons({
                   toggleSettings();
               }}>
                 <MenuList className={classes.settingsMenu}>
-                  <MenuItem>Move to notebook...</MenuItem>
-                  {deleteNoteMenuItem}
+                  {/* <MenuItem className={classes.settingsItem}>Move to notebook...</MenuItem> */}
+                  <MenuItem className={classnames(classes.settingsMenuItem, classes.deletePageItem)}
+                    onClick={onNoteDelete}>
+                    Delete
+                  </MenuItem>
                 </MenuList>
               </ClickAwayListener>
             </Paper>

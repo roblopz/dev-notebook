@@ -6,14 +6,13 @@ export interface ISnippet {
 }
 
 export interface INote {
+  _id?: string;
   header: string;
   subheader?: string;
   content?: string;
   plainTextContent?: string;
   htmlContent?: string;
   snippet?: ISnippet;
-  hideContent?: boolean;
-  hideSnippet?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

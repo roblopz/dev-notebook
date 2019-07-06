@@ -17,7 +17,7 @@ export abstract class CursorPaginationInput {
   @Field(type => ID, { nullable: true })
   @IsOptional()
   @IsString()
-  public after?: string;  
+  public after?: string;
 }
 
 @InputType()
@@ -25,8 +25,7 @@ export abstract class OffsetPaginationInput {
   @Field(type => Int, { nullable: true, defaultValue: 10 })
   @IsOptional()
   @IsInt()
-  @Min(1)
-  public pageSize?: number = 10;
+  public pageSize?: number;
 
   @Field(type => Int, { nullable: true, defaultValue: 1 })
   @IsOptional()
@@ -39,6 +38,6 @@ export abstract class OffsetPaginationInput {
   }
 
   public get take() {
-    return this.pageSize;
+    return this.pageSize || Number.MAX_SAFE_INTEGER;
   }
 }

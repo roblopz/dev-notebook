@@ -3,7 +3,7 @@ import { IAppState } from "../appState";
 
 export const pagesCountQuery = gql`
   {
-    showingPagesCount @client
+    pagesCount @client
   }
 `;
 

@@ -9,12 +9,11 @@ import { useApolloClient } from 'react-apollo-hooks';
 
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../../common/matAutocomple';
-import { IPage, INotebook } from '../../../graphql/models';
-import { WithOptional, OptionalExceptFor } from '../../../../../shared/tsUtil';
 import { Theme } from '@material-ui/core';
 import { NotebooksByNameResp, NotebooksByNameArgs, notebooksByNameQuery } from '../../../graphql/queries/notebooksByName';
+import { CreateOrUpdatePagePage } from '../../../graphql/mutations/createOrUpdatePage';
 
-type NotebookOption = WithOptional<INotebook, '_id'> | OptionalExceptFor<INotebook, 'name'>;
+type NotebookOption = { name: string };
 
 const getStyles = (theme: Theme) => {
   return {
@@ -39,7 +38,7 @@ const getStyles = (theme: Theme) => {
 };
 
 export interface IPageHeaderSectionProps {
-  parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
+  parentFormBag: FormikProps<CreateOrUpdatePagePage>;
 }
 
 function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
@@ -74,15 +73,16 @@ function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
     }
   }, []);
 
-  const loadNotebooks = useCallback(async (inputValue): Promise<Array<IOption<NotebookOption>>> => {
+  const loadNotebooks = useCallback(async (inputValue) => {
     const { data: { notebooks = [] } = {} } = await apolloClient.query<NotebooksByNameResp, NotebooksByNameArgs>({
       query: notebooksByNameQuery,
-      variables: { name: inputValue }
+      variables: { name: inputValue },
+      fetchPolicy: 'network-only'
     });
 
     return notebooks.map(n => ({
       label: n.name,
-      value: { name: n.name, _id: n._id }
+      value: { name: n.name }
     }));
   }, []);
 
@@ -93,13 +93,13 @@ function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
           {...mapMuiFormikdProps('title', values, errors, touched)} onChange={handleChange} />
       </div>
       <div className={classes.notebook}>
-        <MatAutocomplete placeholder="Notebook"
-          value={values.notebook ? { label: values.notebook.name, value: values.notebook } : null}
+        <MatAutocomplete<NotebookOption> placeholder="Notebook"
+          value={values.notebook ? { label: values.notebook, value: { name: values.notebook } } : null}
           isClearable={true}
           textFieldProps={{
             margin: 'dense',
             fullWidth: true,
-            ...mapMuiFormikdProps('notebook.name', values, errors, touched.notebook ? { notebook: { name: true } } : touched),
+            ...mapMuiFormikdProps('notebook', values, errors, touched),
             InputProps: {
               startAdornment: isNewNotebook ?
                 <InputAdornment position="start" className="mr-0">
@@ -109,10 +109,13 @@ function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
           }}
           onEnter={notebookSelectOnEnter}
           loadOptions={loadNotebooks}
-          onChange={(notebookOption: IOption<NotebookOption>) => {
-            if (!notebookOption)
+          onChange={(notebookOption: any) => {
+            if (!notebookOption || !notebookOption.value) {
               setIsNewNotebook(false);
-            setFieldValue('notebook', notebookOption && notebookOption.value);
+              setFieldValue('notebook', '');
+            } else {
+              setFieldValue('notebook', notebookOption.value.name);
+            }
           }} />
       </div>
     </div>

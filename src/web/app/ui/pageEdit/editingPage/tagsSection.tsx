@@ -6,9 +6,8 @@ import { FormikProps } from 'formik';
 
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../../common/matAutocomple';
-import { IPage } from '../../../graphql/models';
-import { WithOptional } from '../../../../../shared/tsUtil';
 import { Theme } from '@material-ui/core';
+import { CreateOrUpdatePagePage } from '../../../graphql/mutations/createOrUpdatePage';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -55,7 +54,7 @@ function tagCamelCase(str: string, maxLength = 0) {
 }
 
 export interface IPageTagsSectionProps {
-  parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
+  parentFormBag: FormikProps<CreateOrUpdatePagePage>;
 }
 
 function PageTagsSection({ parentFormBag }: IPageTagsSectionProps) {

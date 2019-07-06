@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { useQuery, useMutation } from 'react-apollo-hooks';
+import { Theme } from '@material-ui/core';
 
 import PageCard from './pageCard';
 import { PageFiltersResp, pageFiltersQuery } from '../../../graphql/queries/pageFilters';
 import { PagesResp, PagesInput, pagesQuery } from '../../../graphql/queries/pages';
 import { setPagesCountMutation, SetPagesCountResp, SetPagesCountInput } from '../../../graphql/mutations/setPagesCount';
 
-const getStyles = (theme: any) => {
+const getStyles = (theme: Theme) => {
   return {
     root: {
       padding: theme.spacing(2)

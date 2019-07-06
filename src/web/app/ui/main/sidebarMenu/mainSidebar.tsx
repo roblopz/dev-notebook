@@ -24,6 +24,7 @@ import { sharedStyles } from '../../../styles/shared';
 import { PageFiltersResp, pageFiltersQuery } from '../../../graphql/queries/pageFilters';
 import { SetPageFiltersInput, setPageFiltersMutation } from '../../../graphql/mutations/setPageFilters';
 import { PageFilters, initialState } from '../../../graphql/appState';
+import { pagesCountQuery, PagesCountResp } from '../../../graphql/queries/pagesCount';
 
 const sidebarMenuWidth = 60;
 export const getStyles = (theme: Theme) => {
@@ -34,7 +35,7 @@ export const getStyles = (theme: Theme) => {
       borderRadius: 0,
       width: sidebarMenuWidth,
       minWidth: sidebarMenuWidth,
-      zIndex: theme.zIndex.modal + 1
+      zIndex: theme.zIndex.modal - 1
     },
     drawerRoot: {
       paddingTop: theme.spacing(2),
@@ -45,6 +46,9 @@ export const getStyles = (theme: Theme) => {
       borderRadius: 0,
       minHeight: '100%',
       overflow: 'auto'
+    },
+    drawerContainer: {
+      zIndex: `${theme.zIndex.modal - 2} !important` as any
     },
     addIconBlock: {
       display: 'flex',
@@ -64,6 +68,9 @@ export const getStyles = (theme: Theme) => {
     iconBlockSelected: {
       color: sharedStyles.hoverColor
     },
+    iconBlockSelectedError: {
+      color: theme.palette.secondary.main
+    },
     iconTooltip: {
       position: 'relative' as 'relative',
       left: -1 * theme.spacing(1)
@@ -77,20 +84,22 @@ export const getStyles = (theme: Theme) => {
 
 type DrawerOption = 'search' | 'notebooks' | 'tags' | 'languages';
 
-function SidebarMenu() {
+function MainSidebar() {
   const classes = makeStyles(getStyles)({});
   const [drawerOption, setDrawerOption] = useState<DrawerOption>(null);
   const { history } = useRouter();
 
   const { data: { pageFilters } } = useQuery<PageFiltersResp>(pageFiltersQuery);
+  const { data: { pagesCount } } = useQuery<PagesCountResp>(pagesCountQuery);
   const setPageFilters = useMutation<void, SetPageFiltersInput>(setPageFiltersMutation);
 
-  const setFilters = useCallback((pageFilters: PageFilters) => {
+  const setFilters = useCallback((pageFilters: PageFilters, closeDrawer = true) => {
     setPageFilters({
       variables: { pageFilters }
     });
     
-    setDrawerOption(null);
+    if (closeDrawer)
+      setDrawerOption(null);
   }, [pageFilters]);
 
   const clearAllFilters = useCallback(() => {
@@ -102,19 +111,24 @@ function SidebarMenu() {
       case 'search':
         return <DrawerSearch pageFilters={pageFilters} setFilters={setFilters} />;
       case 'notebooks':
-        return <DrawerNotebooks pageFilters={pageFilters} setFilters={setFilters} close={() => setDrawerOption(null)} />;
+        return <DrawerNotebooks pageFilters={pageFilters} setFilters={setFilters} />;
       case 'tags':
-        return <DrawerTags />;
+        return <DrawerTags pageFilters={pageFilters} setFilters={setFilters} />;
       case 'languages':
-        return <DrawerLanguages />;
+        return <DrawerLanguages pageFilters={pageFilters} setFilters={setFilters} />;
       default:
         return null;
     }
-  }, [drawerOption]);
+  }, [pageFilters, setFilters, drawerOption]);
+
+  const isSearching = pageFilters.pageSearch && pageFilters.pageSearch.search ||
+    pageFilters.noteSearch && pageFilters.noteSearch.search;
+  const tagsFiltering = (pageFilters.tags && pageFilters.tags.length);
+  const notFiltering = !isSearching && !pageFilters.language && !pageFilters.notebook && !tagsFiltering;
 
   return (
     <Paper className={classes.root}>
-      <Drawer open={!!drawerOption} onClose={() => setDrawerOption(null)}>
+      <Drawer open={!!drawerOption} onClose={() => setDrawerOption(null)} className={classes.drawerContainer}>
         <Paper className={classes.drawerRoot}>
           {getDrawerComponent()}
         </Paper>
@@ -128,7 +142,11 @@ function SidebarMenu() {
         </Tooltip>
       </div>
       <Tooltip title="Search" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={() => setDrawerOption('search')}>
+        <div className={classnames(classes.iconBlock, {
+          [classes.iconBlockSelected]: isSearching && pagesCount > 0,
+          [classes.iconBlockSelectedError]: isSearching && pagesCount <= 0
+        })}
+          onClick={() => setDrawerOption('search')}>
           <SearchIcon  />
         </div>
       </Tooltip>
@@ -139,18 +157,20 @@ function SidebarMenu() {
         </div>
       </Tooltip>
       <Tooltip title="All notes" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: !pageFilters.notebook })}
+        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: notFiltering })}
           onClick={clearAllFilters}>
           <ClearAllIcon />
         </div>
       </Tooltip>
       <Tooltip title="Tags" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={() => setDrawerOption('tags')}>
+        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: tagsFiltering })}
+          onClick={() => setDrawerOption('tags')}>
           <FontAwesomeIcon icon={faTags} className={classes.faIcon}  />
         </div>
       </Tooltip>
       <Tooltip title="Languages" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={() => setDrawerOption('languages')}>
+        <div className={classnames(classes.iconBlock, { [classes.iconBlockSelected]: !!pageFilters.language })}
+          onClick={() => setDrawerOption('languages')}>
           <FontAwesomeIcon icon={faCode} className={classes.faIcon}  />
         </div>
       </Tooltip>
@@ -158,4 +178,4 @@ function SidebarMenu() {
   );
 }
 
-export default SidebarMenu;
+export default MainSidebar;

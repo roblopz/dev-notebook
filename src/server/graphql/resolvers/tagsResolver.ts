@@ -64,7 +64,7 @@ export class TagsResolver {
     }
 
     // Sort alphabetically
-    resTags.sort((a, b) => a < b ? 1 : a > b ? -1 : 0);
+    resTags.sort((a, b) => a.localeCompare(b));
 
     return resTags.map<TagsType>(tag => ({
       tag, pages: matchingPages.filter(p => p.tags.includes(tag))

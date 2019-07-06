@@ -38,8 +38,6 @@ const seed = false;
       for (let i = 0; i < notesLength; i++) {
         const newNote: Partial<INote> = {
           header: faker.lorem.words(),
-          hideContent: getRandomBool(),
-          hideSnippet: getRandomBool(),
           createdAt: getRandomDate(moment().subtract(100, 'days').toDate(), new Date())
         };
 

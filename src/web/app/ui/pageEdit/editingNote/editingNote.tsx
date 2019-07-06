@@ -8,13 +8,13 @@ import { FormikProps } from 'formik';
 import Collapse from '@material-ui/core/Collapse';
 import { Subject } from 'rxjs';
 
-import { IPage } from '../../../graphql/models';
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
 
 // Components
 import HeaderIcons from './headerIcons';
 import RichEditor from './richEditor';
 import CodeEditor from './codeEditor';
+import { CreateOrUpdatePagePage } from '../../../graphql/mutations/createOrUpdatePage';
 
 const getStyles = (theme: any) => ({
   root: {
@@ -52,8 +52,8 @@ const getStyles = (theme: any) => ({
   }
 });
 
-export interface INoteProps {
-  formikBag: FormikProps<Partial<IPage>>;
+export interface IEditingNoteProps {
+  formikBag: FormikProps<CreateOrUpdatePagePage>;
   parent: string;
   index: number;
   className?: string;
@@ -61,14 +61,14 @@ export interface INoteProps {
   beforeSubmitSubject: Subject<void>;
 }
 
-function Note({
+function EditingNote({
   formikBag,
   parent,
   index,
   className,
   onNoteDelete,
   beforeSubmitSubject
-}: INoteProps) {
+}: IEditingNoteProps) {
   const classes = makeStyles(getStyles)({});
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -91,29 +91,25 @@ function Note({
 
         {/* Rich text editor */}
         <RichEditor className="mt-3" value={values.notes[index].content}
-          hide={values.notes[index].hideContent}
           persistSubject={beforeSubmitSubject}
-          persistValues={({ editorContent, hideContent, plainTextContent, htmlContent }) => {
+          persistValues={({ editorContent, plainTextContent, htmlContent }) => {
             setFieldValue(`${parent}[${index}].content`, editorContent);
             setFieldValue(`${parent}[${index}].plainTextContent`, plainTextContent);
             setFieldValue(`${parent}[${index}].htmlContent`, htmlContent);
-            setFieldValue(`${parent}[${index}].hideContent`, hideContent);
           }} />
 
         {/* Code editor */}
-        <CodeEditor className="mt-2" snippet={values.notes[index].snippet}
-          hide={values.notes[index].hideSnippet}
+        <CodeEditor className="mt-3" snippet={values.notes[index].snippet}
           persistSubject={beforeSubmitSubject}
-          persistValues={({ snippet, hideSnippet }) => {
+          persistValues={({ snippet }) => {
             setFieldValue(`${parent}[${index}].snippet`, snippet);
-            setFieldValue(`${parent}[${index}].hideSnippet`, hideSnippet);
           }} />
       </Collapse>
     </Paper>
   );
 }
 
-Note.propTypes = {
+EditingNote.propTypes = {
   className: PropTypes.string,
   parent: PropTypes.string.isRequired,
   index: PropTypes.number.isRequired,
@@ -122,4 +118,4 @@ Note.propTypes = {
   beforeSubmitSubject: PropTypes.object.isRequired
 };
 
-export default Note;
+export default EditingNote;

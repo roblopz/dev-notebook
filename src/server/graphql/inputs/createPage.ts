@@ -17,6 +17,9 @@ export class NewNoteSnippetInput {
 
 @InputType()
 export class NewPageNoteInput {
+  @Field({ nullable: true })
+  public _id?: string;
+
   @Field()
   public header: string;
 
@@ -36,16 +39,16 @@ export class NewPageNoteInput {
   @IsOptional()
   @ValidateNested()
   public snippet?: NewNoteSnippetInput;
+  
+  @Field({ nullable: true })
+  public createdAt?: Date;
 
   @Field({ nullable: true })
-  public hideContent?: boolean;
-
-  @Field({ nullable: true })
-  public hideSnippet?: boolean;
+  public updatedAt?: Date;
 }
 
 @InputType()
-export class CreatePageInput {
+export class CreateOrUpdatePageInput {
   @Field()
   public title: string;
 

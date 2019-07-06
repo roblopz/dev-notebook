@@ -5,7 +5,11 @@ import classnames from 'classnames';
 export type axis = 'x' | 'y' | 'both';
 
 export interface IResizableBlockProps {
-  children: ({ dimensionStyles }: { dimensionStyles: { height: number | string, width: number | string } }) => React.ReactElement;
+  children: ({ dimensionStyles, adjust }:
+    {
+      dimensionStyles: { height: number | string, width: number | string },
+      adjust: (height?: number, width?: number) => void
+    }) => React.ReactElement;
   limits?: { heightMin?: number, heightMax?: number, widthMin?: number, widthMax?: number };
   viewportMargins?: { bottom?: number, right?: number };
   axis: axis;
@@ -26,10 +30,17 @@ function ResizableBlock({
   const containerRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
   const [resizable, setResizable] = useState({ height: 0, width: 0, draggingClientY: 0, draggingClientX: 0 });
+  const unmounting = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      unmounting.current = true;
+    };
+  }, []);
 
   useEffect(() => {
     const onMouseMove = (evt: MouseEvent) => {
-      if (isResizing.current) {
+      if (isResizing.current && !unmounting.current) {
         const evtClientX = evt.clientX;
         const evtClientY = evt.clientY;
 
@@ -43,7 +54,7 @@ function ResizableBlock({
           let newElemWidth = resizable.width;
 
           // x-axis
-          if (axis === 'both' || axis === 'x') {
+          if (axis === 'both' || axis === 'x') {
             const offsetX = evtClientX - resizable.draggingClientX;
             newElemWidth = resizable.width + offsetX;
 
@@ -88,12 +99,14 @@ function ResizableBlock({
       }
     };
 
-    const onMouseLeaveOrUp = (evt: MouseEvent) => isResizing.current = false;
+    const onMouseLeaveOrUp = (evt: MouseEvent) => {
+      isResizing.current = false;
+    };
 
     let onDoneResizeTimeout: NodeJS.Timeout;
     const onWindowResize = (evt: UIEvent): void => {
       // Allow children to loose width momentariy so we can reduce container
-      if (!onDoneResizeTimeout)
+      if (!onDoneResizeTimeout && !unmounting.current)
         setResizable(resizable => Object.assign({}, resizable, { width: 0 }));
 
       // Clear style to allow element to resize on window resizing
@@ -101,6 +114,8 @@ function ResizableBlock({
       clearTimeout(onDoneResizeTimeout);
 
       onDoneResizeTimeout = setTimeout(() => {
+        if (unmounting.current) return;
+
         setResizable(resizable => {
           onDoneResizeTimeout = null;
           return Object.assign({}, resizable, { width: containerRef.current.offsetWidth });
@@ -115,6 +130,7 @@ function ResizableBlock({
     window.addEventListener('resize', onWindowResize);
 
     return () => {
+      clearTimeout(onDoneResizeTimeout);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseleave', onMouseLeaveOrUp);
       document.removeEventListener('mouseenter', onMouseLeaveOrUp);
@@ -130,6 +146,9 @@ function ResizableBlock({
   useEffect(() => {
     // Allow container to finish adjusting
     setTimeout(() => {
+      if (!containerRef.current || unmounting.current)
+        return;
+
       let height = containerRef.current.offsetHeight;
       let width = containerRef.current.offsetWidth;
 
@@ -159,7 +178,7 @@ function ResizableBlock({
     clearTimeout(checkStyleEffectTimeout);
 
     checkStyleEffectTimeout = setTimeout(() => {
-      if (!containerRef || !containerRef.current) return;
+      if (!containerRef || !containerRef.current || unmounting.current) return;
       if (resizable.width && !(containerRef.current.style.width.includes(resizable.width as any)))
         containerRef.current.style.width = isNaN(resizable.width) ? resizable.width as unknown as string : `${resizable.width}px`;
     }, 200);
@@ -168,6 +187,9 @@ function ResizableBlock({
   const onResizerMouseDown = useCallback((evt: React.MouseEvent<HTMLDivElement>) => {
     const clientY = evt.clientY;
     const clientX = evt.clientX;
+
+    if (unmounting.current)
+      return;
 
     setResizable(resizableInfo => {
       isResizing.current = true;
@@ -185,9 +207,32 @@ function ResizableBlock({
     ...(resizable.width && { width: resizable.width })
   };
 
+  const adjust = useCallback((height?: number, width?: number) => {
+    setResizable(resizable => {
+      if (limits && limits.heightMax)
+        height = height > limits.heightMax ? limits.heightMax : height;
+
+      if (limits && limits.heightMin)
+        height = height < limits.heightMin ? limits.heightMin : height;
+
+      if (limits && limits.widthMax)
+        width = width > limits.widthMax ? limits.widthMax : width;
+
+      if (limits && limits.widthMin)
+        width = width < limits.widthMin ? limits.widthMin : width;
+
+      return {
+        height,
+        width,
+        draggingClientX: 0,
+        draggingClientY: 0
+      };
+    });
+  }, []);
+
   return (
     <div ref={containerRef} style={dimensionStyles} className={classnames({ [className]: !!className })}>
-      {children({ dimensionStyles })}
+      {children({ dimensionStyles, adjust })}
       <div className={classnames({
         'block-resizer-left': resizerPosition === 'left',
         'block-resizer-right': resizerPosition === 'right',

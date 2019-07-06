@@ -3,7 +3,7 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
-input CreatePageInput {
+input CreateOrUpdatePageInput {
   title: String!
   notebook: String!
   tags: [String!]
@@ -29,7 +29,10 @@ input FindTagsInput {
 }
 
 type Mutation {
-  createPage(page: CreatePageInput!): PageType
+  deletePage(id: String!): String!
+  createOrUpdatePage(id: String, page: CreateOrUpdatePageInput!): PageType
+  renameNotebook(name: String!, id: String!): String!
+  deleteNotebook(id: String!): String!
 }
 
 input NewNoteSnippetInput {
@@ -39,20 +42,22 @@ input NewNoteSnippetInput {
 }
 
 input NewPageNoteInput {
+  _id: String
   header: String!
   subheader: String
   content: String
   plainTextContent: String
   htmlContent: String
   snippet: NewNoteSnippetInput
-  hideContent: Boolean
-  hideSnippet: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
 type NotebookType {
   _id: ID!
   name: String!
   pages: [PageType!]
+  pageCount: Float
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -72,14 +77,13 @@ type NoteSnippetType {
 }
 
 type NoteType {
+  _id: String
   header: String!
   subheader: String
   content: String
   plainTextContent: String
   htmlContent: String
   snippet: NoteSnippetType
-  hideContent: Boolean
-  hideSnippet: Boolean
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -122,10 +126,12 @@ type PageType {
 }
 
 type Query {
+  page(id: String!): PageType
   pages(options: PagesInput): [PageType!]
   notebooks(sort: Int = 1, name: String): [NotebookType!]
   getTag(tag: String!): TagsType
   findTags(options: FindTagsInput): [TagsType!]
+  allLanguages: [String!]!
 }
 
 enum SortOrder {

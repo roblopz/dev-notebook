@@ -1,16 +1,16 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { FormikProps, FieldArray, FieldArrayRenderProps } from 'formik';
 import { makeStyles } from '@material-ui/styles';
-import { IPage, INote } from '../../../graphql/models';
+import { INote } from '../../../graphql/models';
 import AddIcon from '@material-ui/icons/AddRounded';
 import Fab from '@material-ui/core/Fab';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { Subject } from 'rxjs';
 
-import Note from '../note/note';
-import { WithOptional } from '../../../../../shared/tsUtil';
+import EditingNote from '../editingNote/editingNote';
+import { CreateOrUpdatePagePage } from '../../../graphql/mutations/createOrUpdatePage';
 
 const getStyles = (theme: any) => {
   return {
@@ -28,7 +28,7 @@ const getStyles = (theme: any) => {
 };
 
 export interface INotesSectionProps {
-  parentFormBag: FormikProps<WithOptional<IPage, '_id'>>;
+  parentFormBag: FormikProps<CreateOrUpdatePagePage>;
   defaultNote: { readonly value: INote };
   beforeSubmitSubject: Subject<void>;
 }
@@ -49,7 +49,7 @@ function NotesSection({ parentFormBag, defaultNote, beforeSubmitSubject }: INote
       <FieldArray name="notes" render={(arrayHelpers: FieldArrayRenderProps) => (
         <React.Fragment>
           {parentFormBag.values.notes.map((note, idx) => (
-            <Note key={idx} index={idx} onNoteDelete={() => {
+            <EditingNote key={idx} index={idx} onNoteDelete={() => {
               arrayHelpers.remove(idx);
             }} formikBag={parentFormBag} parent="notes"
               beforeSubmitSubject={beforeSubmitSubject} />

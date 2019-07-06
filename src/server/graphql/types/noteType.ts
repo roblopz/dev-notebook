@@ -16,6 +16,9 @@ export class NoteSnippetType {
 
 @ObjectType()
 export class NoteType {
+  @Field({ nullable: true })
+  public _id?: string;
+
   @Field()
   public header: string;
 
@@ -33,12 +36,6 @@ export class NoteType {
 
   @Field(type => NoteSnippetType, { nullable: true })
   public snippet?: NoteSnippetType;
-
-  @Field({ nullable: true, defaultValue: false })
-  public hideContent?: boolean;
-
-  @Field({ nullable: true, defaultValue: false })
-  public hideSnippet?: boolean;
 
   @Field()
   public createdAt: Date;

@@ -1,4 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useMutation, useApolloClient } from 'react-apollo-hooks';
+import useRouter from 'use-react-router';
+import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
@@ -13,14 +16,23 @@ import Popper from '@material-ui/core/Popper';
 import Paper from '@material-ui/core/Paper';
 import Grow from '@material-ui/core/Grow';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Divider from '@material-ui/core/Divider';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import { BehaviorSubject } from 'rxjs';
 import { skip } from 'rxjs/operators';
 import { Theme } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 import NoteCard from './noteCard';
 import { PageType } from '../../../graphql/queries/pages';
+import { appRoutes } from '../../../lib/routes';
+import { deletePageMutation, DeletePageResp, DeletePageInput } from '../../../graphql/mutations/deletePage';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -39,6 +51,9 @@ const getStyles = (theme: Theme) => {
     pageSettingsItem: {
       padding: '6px 8px',
       minHeight: 'unset'
+    },
+    deletePageItem: {
+      color: theme.palette.secondary.main
     }
   };
 };
@@ -51,10 +66,15 @@ export interface IPageCardProps {
 function PageCard({ page, className }: IPageCardProps) {
   const classes = makeStyles(getStyles)({});
   const [settingsOpen, setSettinsOpen] = useState(false);
-  const [collapsePage, setCollapsePage] = useState(false);
+  const [collapsePage, setCollapsePage] = useState(true);
   const settingsBtnRef = useRef(null);
   const collapseNotesSubject = useRef<BehaviorSubject<boolean>>(new BehaviorSubject(false).pipe(skip(1)) as BehaviorSubject<boolean>);
   const pendingToCollapseNotes = useRef(false);
+  const [showDeletedialog, setShowDeleteDialog] = useState(false);
+  const { history } = useRouter();
+  const apolloClient = useApolloClient();
+
+  const deletePage = useMutation<DeletePageResp, DeletePageInput>(deletePageMutation);
 
   const toggleSettingsOpen = useCallback(() => {
     setSettinsOpen(!settingsOpen);
@@ -70,6 +90,19 @@ function PageCard({ page, className }: IPageCardProps) {
 
     collapseNotesSubject.current.next(collapse);
   }, [collapsePage]);
+
+  const onEdit = useCallback(() => {
+    history.push(appRoutes.editPage(page._id));
+  }, [page]);
+
+  const onDelete = useCallback(async () => {
+    await deletePage({
+      variables: { id: page._id },
+      update: (async () => {
+        await apolloClient.resetStore();
+      })
+    });
+  }, [page]);
 
   return (
     <Card className={className}>
@@ -97,19 +130,36 @@ function PageCard({ page, className }: IPageCardProps) {
                         <MenuItem className={classes.pageSettingsItem} onClick={() => {
                           collapseNotes(true);
                           toggleSettingsOpen();
-                        }}> Expand notes </MenuItem>
-
+                        }}>Expand notes</MenuItem>
                         {collapsePage ?
-                        <MenuItem className={classes.pageSettingsItem} onClick={() => {
-                          collapseNotes(false);
-                          toggleSettingsOpen();
-                        }}> Collapse notes</MenuItem> : null}
+                          <MenuItem className={classes.pageSettingsItem} onClick={() => {
+                            collapseNotes(false);
+                            toggleSettingsOpen();
+                          }}>Collapse notes</MenuItem> : null}
+                        <Divider />
+                        <MenuItem className={classes.pageSettingsItem} onClick={onEdit}>Edit page</MenuItem>
+                        <MenuItem className={classnames(classes.pageSettingsItem, classes.deletePageItem)}
+                          onClick={() => setShowDeleteDialog(true)}>
+                          Delete page
+                        </MenuItem>
                       </MenuList>
                     </Paper>
                   </Grow>
                 </ClickAwayListener>
               )}
             </Popper>
+
+            <Dialog open={showDeletedialog} onClose={() => setShowDeleteDialog(false)}>
+              <DialogTitle>Delete page and all it's content?</DialogTitle>
+              <DialogActions>
+                <Button onClick={() => setShowDeleteDialog(false)} color="primary" autoFocus>
+                  Cancel
+                </Button>
+                <Button onClick={onDelete} color="secondary">
+                  OK
+                </Button>
+              </DialogActions>
+            </Dialog>
           </React.Fragment>
         } />
 
@@ -122,7 +172,7 @@ function PageCard({ page, className }: IPageCardProps) {
         <CardContent className="pt-0 pb-3">
           {page.notes.map((n, idx) => (
             <NoteCard key={idx} note={n} collapseSubject={collapseNotesSubject.current}
-              className={(idx + 1) < page.notes.length ? 'mb-3' : ''} />
+              className={classnames({ 'mb-3': (idx + 1) < page.notes.length })} />
           ))}
         </CardContent>
       </Collapse>

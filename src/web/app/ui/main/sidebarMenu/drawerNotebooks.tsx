@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import useRouter from 'use-react-router';
 import PropTypes from 'prop-types';
 import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
@@ -11,13 +12,14 @@ import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
 import SearchIcon from '@material-ui/icons/SearchRounded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Button from '@material-ui/core/Button';
 
 import { searchInputStyles, getDrawerTitleStyles } from './drawerSearch';
 import { sharedStyles } from '../../../styles/shared';
-import { DrawerNotebooksResp, drawerNotebooksQuery } from '../../../graphql/queries/drawerNotebooks';
+import { NotebooksResp, notebooksQuery } from '../../../graphql/queries/notebooks';
 import { PageFilters } from '../../../graphql/appState';
+import { appRoutes } from '../../../lib/routes';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -30,21 +32,30 @@ const getStyles = (theme: Theme) => {
     notebookItemSelected: {
       color: sharedStyles.hoverColor
     },
+    editIcon: {
+      top: 0,
+      color: theme.palette.primary.light,
+      position: 'relative' as 'relative',
+      cursor: 'pointer',
+      '&:hover': {
+        color: sharedStyles.hoverColor
+      }
+    },
     ...getDrawerTitleStyles(theme),
     ...searchInputStyles(theme)
   };
 };
 
 export interface IDrawerNotebooksProps {
-  close: () => void;
   pageFilters: PageFilters;
   setFilters: (pageFilters: PageFilters) => void;
 }
 
-function DrawerNotebooks({ pageFilters, setFilters, close }: IDrawerNotebooksProps) {
+function DrawerNotebooks({ pageFilters, setFilters }: IDrawerNotebooksProps) {
   const classes = makeStyles(getStyles)({});
   const [searchVal, setSearchVal] = useState('');
-  const { data: { notebooks = [] } } = useQuery<DrawerNotebooksResp>(drawerNotebooksQuery);
+  const { data: { notebooks = [] } } = useQuery<NotebooksResp>(notebooksQuery);
+  const { history } = useRouter();
 
   const setNotebookFilter = useCallback(async (notebookID: string) => {
     setFilters({ ...pageFilters, notebook: notebookID });
@@ -53,7 +64,10 @@ function DrawerNotebooks({ pageFilters, setFilters, close }: IDrawerNotebooksPro
   return (
     <React.Fragment>
       <div className={classes.titleWrapper}>
-        <Typography variant="h6">Notebooks</Typography>
+        <Typography variant="h6">
+          Notebooks <FontAwesomeIcon {... {onClick: () => history.push(appRoutes.notebooks)}}
+            icon={faEdit} className={classes.editIcon} />
+        </Typography>
         {pageFilters.notebook ?
           <Button size="small" onClick={() => setNotebookFilter(null)}>
             <FontAwesomeIcon icon={faTimes} className={classes.clearIcon} /> Clear
@@ -81,13 +95,12 @@ function DrawerNotebooks({ pageFilters, setFilters, close }: IDrawerNotebooksPro
             </ListItem>
           );
         })}
-      </List >
+      </List>
     </React.Fragment>
   );
 }
 
 DrawerNotebooks.propTypes = {
-  close: PropTypes.func.isRequired,
   pageFilters: PropTypes.object.isRequired,
   setFilters: PropTypes.func.isRequired
 };

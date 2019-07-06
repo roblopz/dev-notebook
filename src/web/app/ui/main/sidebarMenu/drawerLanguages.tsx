@@ -1,45 +1,81 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import PropTypes from 'prop-types';
+import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
+import Typography from '@material-ui/core/Typography';
+import { getAllLanguages, GetAllLanguagesResp } from '../../../graphql/queries/allLanguages';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
+import InputBase from '@material-ui/core/InputBase';
+import SearchIcon from '@material-ui/icons/SearchRounded';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import Button from '@material-ui/core/Button';
+
+import { getDrawerTitleStyles, searchInputStyles } from './drawerSearch';
+import { PageFilters } from '../../../graphql/appState';
+import { sharedStyles } from '../../../styles/shared';
 
 const getStyles = (theme: Theme) => {
   return {
-    notebookItem: {
-      paddingLeft: theme.spacing(1)
-    }
+    languageItem: {
+      paddingLeft: theme.spacing(1),
+      '&:hover': {
+        color: sharedStyles.hoverColor
+      }
+    },
+    languageItemSelected: {
+      color: sharedStyles.hoverColor
+    },
+    ...getDrawerTitleStyles(theme),
   };
 };
 
-function DrawerLanguages() {
+export interface IDrawerLanguagesProps {
+  pageFilters: PageFilters;
+  setFilters: (pageFilters: PageFilters) => void;
+}
+
+function DrawerLanguages({ pageFilters, setFilters }: IDrawerLanguagesProps) {
   const classes = makeStyles(getStyles)({});
+  const { data: { languages = [] } } = useQuery<GetAllLanguagesResp>(getAllLanguages);
+  const [searchVal, setSearchVal] = useState('');
+
+  const setLanguageFilter = useCallback(async (language: string) => {
+    setFilters({ ...pageFilters, language });
+  }, [pageFilters, setFilters]);
 
   return (
     <React.Fragment>
-      <Typography variant="h6" className="mb-2">Languages</Typography>
+      <div className={classes.titleWrapper + ' mb-0'}>
+        <Typography variant="h6">Languages</Typography>
+        {pageFilters.language ?
+          <Button size="small" onClick={() => setLanguageFilter(null)}>
+            <FontAwesomeIcon icon={faTimes} className={classes.clearIcon} /> Clear
+          </Button> : null}
+      </div>
       
       <List dense={true}>
-        <ListItem button className={classes.notebookItem}>
-          <ListItemText primary="Notebook 1" />
-        </ListItem>
-        <ListItem button className={classes.notebookItem}>
-          <ListItemText primary="Notebook 2" />
-        </ListItem>
-        <ListItem button className={classes.notebookItem}>
-          <ListItemText primary="Notebook 3" />
-        </ListItem>
-        <ListItem button className={classes.notebookItem}>
-          <ListItemText primary="Notebook 4" />
-        </ListItem>
-        <ListItem button className={classes.notebookItem}>
-          <ListItemText primary="Notebook 5" />
-        </ListItem>
-      </List >
+        {languages.map((lang, idx) => {
+          return (
+            <ListItem key={idx} button selected={lang === pageFilters.language}
+              className={classes.languageItem} classes={{ selected: classes.languageItemSelected }}
+              onClick={() => setLanguageFilter(lang)}>
+              <ListItemText primary={lang} primaryTypographyProps={{ variant: 'body1' }} />
+            </ListItem>
+          );
+        })}
+      </List>
     </React.Fragment>
   );
 }
+
+DrawerLanguages.propTypes = {
+  pageFilters: PropTypes.object.isRequired,
+  setFilters: PropTypes.func.isRequired
+};
 
 export default DrawerLanguages;

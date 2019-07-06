@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 
-import SidebarMenu from './sidebarMenu/sidebarMenu';
+import MainSidebar from './sidebarMenu/mainSidebar';
 import PageResults from './pageResults/pageResults';
 import { Theme } from '@material-ui/core';
 
@@ -21,12 +21,12 @@ const getStyles = (theme: any) => ({
   contentWrapper: { ...getAppContentWrapperStyle(theme) }
 });
 
-function Main() {
+function MainIndex() {
   const classes = makeStyles(getStyles)({});
 
   return (
     <div className={classes.root}>
-      <SidebarMenu />
+      <MainSidebar />
       <div className={classes.contentWrapper}>
         <PageResults />
       </div>
@@ -34,4 +34,4 @@ function Main() {
   );
 }
 
-export default Main;
+export default MainIndex;

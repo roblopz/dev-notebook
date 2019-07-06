@@ -3,12 +3,12 @@ const cache = new InMemoryCache();
 
 export type PageFilters = {
   __typename?: 'PageFilters';
-  pageSearch: {
+  pageSearch?: {
     __typename?: 'PageFilters_PageSearch'
     search?: string;
     title?: boolean;
   };
-  noteSearch: {
+  noteSearch?: {
     __typename?: 'PageFilters_NoteSearch'
     search?: string;
     code?: boolean;
@@ -48,7 +48,7 @@ export const initialState: IAppState = {
     },
     language: null,
     notebook: null,
-    tags: null,
+    tags: [],
     current: 1,
     pageSize: 10,
     sortBy: 'PageUpdatedAt',

@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import useRouter from 'use-react-router';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
 import Drawer from '@material-ui/core/Drawer';
@@ -11,27 +10,27 @@ import { faReply } from '@fortawesome/free-solid-svg-icons';
 import SaveIcon from '@material-ui/icons/SaveRounded';
 import Divider from '@material-ui/core/Divider';
 
-import { appRoutes } from '../../lib/routes';
-import { getStyles as getSidebarStyles } from '../main/sidebarMenu/sidebarMenu';
-import { IPageFormStatus } from './page/page';
+import { getStyles as getSidebarStyles } from '../main/sidebarMenu/mainSidebar';
 
 const getStyles = (theme: Theme) => {
   return {
+    saveBtn: {
+      color: theme.palette.primary.main
+    },
     ...getSidebarStyles(theme)
   };
 };
 
 type DrawerOption = 'back' | 'save';
 
-export interface IEditPageSidebarMenuProps {
-  pageStatus: React.MutableRefObject<IPageFormStatus>;
-  triggerPageSubmit: () => void;
+export interface IPageEditSidebarProps {
+  onPageGoBack: () => void;
+  onPageSubmit: () => void;
 }
 
-function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebarMenuProps) {
+function PageEditSidebar({ onPageGoBack, onPageSubmit }: IPageEditSidebarProps) {
   const classes = makeStyles(getStyles)({});
   const [drawerOption, setDrawerOption] = useState<DrawerOption>(null);
-  const { history } = useRouter();
 
   const getDrawerComponent = useCallback(() => {
     switch (drawerOption) {
@@ -40,17 +39,8 @@ function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebar
     }
   }, [drawerOption]);
 
-  const onBack = useCallback(() => {
-    let goBack = true;
-    if (pageStatus.current.isDirty)
-      goBack = confirm('You have unsaved changes, want to cancel all?');
-
-    if (goBack)
-      history.push(appRoutes.index);
-  }, []);
-
   const onSaveClick = useCallback(async () => {
-    triggerPageSubmit();
+    onPageSubmit();
   }, []);
 
   return (
@@ -62,23 +52,23 @@ function EditPageSidebarMenu({ pageStatus, triggerPageSubmit }: IEditPageSidebar
       </Drawer>
             
       <Tooltip title="Back" placement="right" classes={{ tooltip: classes.iconTooltip }}>
-        <div className={classes.iconBlock} onClick={onBack}>
+        <div className={classes.iconBlock} onClick={onPageGoBack}>
           <FontAwesomeIcon icon={faReply} className={classes.faIcon}  />
         </div>
       </Tooltip>
       <Divider />
       <Tooltip title="Save" placement="right" classes={{ tooltip: classes.iconTooltip }}>
         <div className={classes.iconBlock} onClick={onSaveClick}>
-          <SaveIcon />
+          <SaveIcon className={classes.saveBtn} />
         </div>
       </Tooltip>
     </Paper>
   );
 }
 
-EditPageSidebarMenu.propTypes = {
-  pageStatus: PropTypes.shape({ current: PropTypes.object }).isRequired,
-  triggerPageSubmit: PropTypes.func.isRequired
+PageEditSidebar.propTypes = {
+  onPageGoBack: PropTypes.func.isRequired,
+  onPageSubmit: PropTypes.func.isRequired
 };
 
-export default EditPageSidebarMenu;
+export default PageEditSidebar;

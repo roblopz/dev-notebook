@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
-import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
 import { Theme } from '@material-ui/core';
 import Paper from '@material-ui/core/Paper';
@@ -16,7 +15,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 import { PageFilters } from '../../../graphql/appState';
-import { pageFiltersQuery, PageFiltersResp } from '../../../graphql/queries/pageFilters';
 import { initialState } from '../../../graphql/appState';
 
 export const searchInputStyles = (theme: Theme) => ({
@@ -111,7 +109,7 @@ function DrawerSearch({ pageFilters, setFilters }: IDrawerSearchProps) {
       let newSearchIn: ISearchNotesOptions = { ...currentSearchIn, [key]: !currentSearchIn[key] };
 
       if (Object.keys(newSearchIn).every(k => !newSearchIn[k]))
-        newSearchIn = { content: null, code: null, header: null, subheader: null };
+        newSearchIn = { content: true, code: true, header: true, subheader: true };
 
       return newSearchIn;
     });
@@ -126,20 +124,22 @@ function DrawerSearch({ pageFilters, setFilters }: IDrawerSearchProps) {
   const fireSearch = useCallback((type: 'note' | 'page') => {
     if (type === 'note') {
       setFilters({
+        ...pageFilters,
         pageSearch: initialState.pageFilters.pageSearch,
         noteSearch: noteSearchVal ?
-          { ...searchNotesIn, search: noteSearchVal }
+          { ...pageFilters.noteSearch, ...searchNotesIn, search: noteSearchVal }
           : initialState.pageFilters.noteSearch
       });
     } else { // page
       setFilters({
+        ...pageFilters,
         noteSearch: initialState.pageFilters.noteSearch,
         pageSearch: pageSearchVal ?
-          { title: true, search: pageSearchVal }
+          { ...pageFilters.pageSearch, title: true, search: pageSearchVal }
           : initialState.pageFilters.pageSearch
       });
     }
-  }, [noteSearchVal, pageSearchVal, searchNotesIn, setFilters]);
+  }, [pageFilters, noteSearchVal, pageSearchVal, searchNotesIn, setFilters]);
 
   const showClear = pageFilters.noteSearch.search || pageFilters.pageSearch.search;
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Formik } from 'formik';
@@ -8,23 +8,18 @@ import { yup } from '../../../lib/validation/yup';
 import { Subject } from 'rxjs';
 
 // Components
-import { IPage, INote, ISnippet, INotebook } from '../../../graphql/models';
+import { INote, ISnippet } from '../../../graphql/models';
 import PageHeader from './pageHeader';
 import NotesSection from './notesSection';
-import { Omit } from '../../../../../shared/tsUtil';
 import TagsSection from './tagsSection';
-import { CreatePageInput, createPageMutation, CreatePageResp } from '../../../graphql/mutations/createPage';
+import { CreateOrUpdatePageInput,
+        createOrUpdatePageMutation,
+        CreateOrUpdatePageResp,
+        CreateOrUpdatePagePage
+} from '../../../graphql/mutations/createOrUpdatePage';
 import { Theme } from '@material-ui/core';
-
-export type FormPage = IPage | { notebook: FormNotebook };
-export type FormNotebook = Partial<INotebook> & Pick<INotebook, 'name'>;
-
-export interface IPageFormStatus {
-  isDirty?: boolean;
-  isValid?: boolean;
-  isSubmitting?: boolean;
-  errors?: any;
-}
+import { PageType } from '../../../graphql/queries/pages';
+import { omitDeep } from '../../../graphql/links/cleanTypename';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -65,6 +60,7 @@ const getStyles = (theme: Theme) => {
 };
 
 const noteValidationSchema = yup.object().shape<INote>({
+  _id: yup.string().notRequired(),
   header: yup.string().required(),
   subheader: yup.string().nullable().notRequired(),
   snippet: yup.object().shape<ISnippet>({
@@ -72,25 +68,17 @@ const noteValidationSchema = yup.object().shape<INote>({
     code: yup.string(),
     htmlCode: yup.string()
   }),
-  hideContent: yup.bool().nullable(),
-  hideSnippet: yup.bool().nullable(),
   htmlContent: yup.string(),
   plainTextContent: yup.string(),
-  content: yup.string(),
-  createdAt: yup.date().nullable().notRequired(),
-  updatedAt: yup.date().nullable().notRequired()
+  content: yup.string()
 });
 
-const pageValidationSchema = yup.object().shape<FormPage>({
-  _id: yup.string().nullable().notRequired(),
+const pageValidationSchema = yup.object().shape<CreateOrUpdatePagePage>({
+  _id: yup.string().notRequired(),
   title: yup.string().required(),
   tags: yup.array().of(yup.string().required()).nullable(),
-  notebook: yup.object().shape<FormNotebook>({
-    name: yup.string().required()
-  }).required(),
+  notebook: yup.string().required(),
   notes: yup.array().of(noteValidationSchema).min(1, 'At least one note is required'),
-  createdAt: yup.date().nullable().notRequired(),
-  updatedAt: yup.date().nullable().notRequired()
 });
 
 const defaultNote = {
@@ -101,44 +89,52 @@ const defaultNote = {
       content: '',
       plainTextContent: '',
       htmlContent: '',
-      hideContent: true,
-      hideSnippet: true,
-      snippet: { language: 'javascript', code: '', htmlCode: '' }
+      snippet: { language: 'JavaScript', code: '', htmlCode: '' }
     };
   }
 };
 
-export interface IPageEditProps {
-  submitSubject: Subject<void>;
-  formStatus: React.MutableRefObject<IPageFormStatus>;
+export interface IEditingPageProps {
+  onSubmit: Subject<void>;
+  onGoBack: Subject<void>;
   onSubmitted: () => void;
+  page?: PageType;
 }
 
-function Page({ formStatus, submitSubject, onSubmitted }: IPageEditProps) {
+function EditingPage({ onGoBack , onSubmit, onSubmitted, page: editingPage }: IEditingPageProps) {
   const classes = makeStyles(getStyles)({});
-  const currentPage = {} as IPage;
-  const createPage = useMutation<CreatePageResp, CreatePageInput>(createPageMutation);
+  const createOrUpdatePage = useMutation<CreateOrUpdatePageResp, CreateOrUpdatePageInput>(createOrUpdatePageMutation);
   const apolloClient = useApolloClient();
   const beforeSubmitSubject = useRef(new Subject<void>());
-  const formikRef = useRef<Formik<Omit<IPage, '_id'>>>(null);
+  const formikRef = useRef<Formik<CreateOrUpdatePagePage>>(null);
 
-  const getInitialValues = useCallback((): Omit<IPage, '_id'> => ({
-    title: currentPage.title || '',
-    notebook: currentPage.notebook,
-    tags: currentPage.tags || [],
-    notes: Array.isArray(currentPage.notes) ? currentPage.notes
-      : [Object.assign(defaultNote.value, { hideContent: false, hideSnippet: false })]
-  }), []);
+  const getInitialValues = useCallback((): CreateOrUpdatePagePage => {
+    let page = editingPage;
+    if (page)
+      page = omitDeep(page, '__typename') as PageType;
+    else
+      page = page || {} as PageType;
+
+    return {
+      _id: page._id,
+      title: page.title || '',
+      notebook: page.notebook && page.notebook.name,
+      tags: page.tags || [],
+      notes: page.notes && page.notes || [Object.assign(defaultNote.value)]
+    };
+  }, [editingPage]);
+
+  useEffect(() => {
+    if (editingPage)
+      formikRef.current.resetForm(getInitialValues());
+  }, [editingPage]);
 
   const submitPage = useCallback(async () => {
     try {
-      // Trigger onBefore submit to set child values
-      // (som operations are too heavy to set with the usual onChange pattern)
-      await beforeSubmitSubject.current.next();
-      const formValues = formikRef.current.getFormikBag().values;
+      const { _id: pageId, ...page } = formikRef.current.getFormikBag().values;
 
-      await createPage({
-        variables: { input: { ...formValues, notebook: formValues.notebook.name } },
+      await createOrUpdatePage({
+        variables: { id: pageId, input: page },
         update: async () => {
           await apolloClient.resetStore();
           onSubmitted();
@@ -148,27 +144,42 @@ function Page({ formStatus, submitSubject, onSubmitted }: IPageEditProps) {
   }, []);
 
   useEffect(() => {
-    const submitSubscription = submitSubject.subscribe(async () => {
-      if (!formStatus.current.isValid) {
+    const onSubmitSubscription = onSubmit.subscribe(async () => {
+      // Complete form (some value setters are too heavy to set with the usual onChange pattern)
+      await beforeSubmitSubject.current.next();
+      const { dirty, isValid } = formikRef.current.getFormikBag();
+
+      if (!dirty) {
+        // Go back
+        onSubmitted();
+      } else if (!isValid) {
         // Phantom submit invalid form, just to show validation errors
         formikRef.current.submitForm();
-      } else if (!formStatus.current.isDirty) {
-        onSubmitted();
       } else {
         await submitPage();
       }
     });
 
-    return () => submitSubscription.unsubscribe();
+    const onGoBackSubscription = onGoBack.subscribe(async () => {
+      // Complete form (some value setters are too heavy to set with the usual onChange pattern)
+      await beforeSubmitSubject.current.next();
+      const { dirty } = formikRef.current.getFormikBag();
+
+      let goBack = true;
+      if (dirty) goBack = confirm('Cancel unsaved changes?');
+      if (goBack) onSubmitted();
+    });
+
+    return () => {
+      onSubmitSubscription.unsubscribe();
+      onGoBackSubscription.unsubscribe();
+    };
   }, []);
 
   return (
     <Paper className={classes.root}>
       <Formik ref={formikRef} initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={() => {}}>
         {(formikBag) => {
-          const { dirty, isValid, isSubmitting, errors } = formikBag;
-          formStatus.current = { isDirty: dirty, isSubmitting, isValid, errors };
-
           return (
             <form className={classes.mainPageForm}>
               <section className={classes.pageHeader}>
@@ -189,10 +200,11 @@ function Page({ formStatus, submitSubject, onSubmitted }: IPageEditProps) {
   );
 }
 
-Page.propTypes = {
-  formStatus: PropTypes.shape({ current: PropTypes.object }).isRequired,
-  submitSubject: PropTypes.object.isRequired,
-  onSubmitted: PropTypes.func.isRequired
+EditingPage.propTypes = {
+  onGoBack: PropTypes.object.isRequired,
+  onSubmit: PropTypes.object.isRequired,
+  onSubmitted: PropTypes.func.isRequired,
+  page: PropTypes.object
 };
 
-export default Page;
+export default EditingPage;

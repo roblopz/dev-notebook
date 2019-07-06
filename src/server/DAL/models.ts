@@ -7,13 +7,11 @@ export interface IEntity {
   updatedAt?: Date;
 }
 
-export interface INote extends Omit<IEntity, '_id'> {
+export interface INote extends IEntity {
   header: string;
   subheader?: string;
   content?: string;
   snippet?: INoteSnippet;
-  hideContent?: boolean;
-  hideSnippet?: boolean;
 }
 
 export interface INoteSnippet {

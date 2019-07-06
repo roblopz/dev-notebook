@@ -12,6 +12,7 @@ export const pageFragment = gql`
       name
     }
     notes {
+      _id
       header
       subheader
       content

@@ -12,6 +12,9 @@ export class NotebookType {
   @Field(type => [PageType], { nullable: true })
   public pages?: PageType[];
 
+  @Field({ nullable: true })
+  public pageCount?: number;
+
   @Field()
   public createdAt: Date;
 

@@ -49,7 +49,7 @@ const getStyles = (theme: Theme) => {
     codeView: {
       border: '1px solid #d1d1d1',
       borderRadius: '2px',
-      padding: theme.spacing(1),
+      padding: `0 ${theme.spacing(1)}px`,
       marginTop: '.25rem'
     }
   };
@@ -96,7 +96,7 @@ function NoteCard({ note, className, collapseSubject }: INoteCardProps) {
                 [&nbsp;{note.snippet.language}&nbsp;]
               </Typography>
               <div className={classes.codeView}>
-                <ResizableBlock className="position-relative mt-2" axis="y" resizerPosition="right"
+                <ResizableBlock className="position-relative mt-1" axis="y" resizerPosition="right"
                   limits={{ heightMin: 100, heightMax: 500 }}>
                   {({ dimensionStyles }) => {
                     return (

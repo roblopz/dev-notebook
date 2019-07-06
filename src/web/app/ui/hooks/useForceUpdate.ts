@@ -1,6 +1,6 @@
 import { useState } from "react";
 
 export default () => {
-  const [dummyState, setDummyState] = useState(0);
+  const setDummyState = useState(0)[1];
   return () => setDummyState(s => ++s);
 };
