@@ -54,7 +54,7 @@ export interface IDrawerNotebooksProps {
 function DrawerNotebooks({ pageFilters, setFilters }: IDrawerNotebooksProps) {
   const classes = makeStyles(getStyles)({});
   const [searchVal, setSearchVal] = useState('');
-  const { data: { notebooks = [] } } = useQuery<NotebooksResp>(notebooksQuery);
+  const { data: { notebooks = [] } } = useQuery<NotebooksResp>(notebooksQuery, { fetchPolicy: 'cache-and-network' as any });
   const { history } = useRouter();
 
   const setNotebookFilter = useCallback(async (notebookID: string) => {

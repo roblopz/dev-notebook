@@ -1,19 +1,22 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
-import NewIcon from '@material-ui/icons/FiberNewRounded';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
 import { FormikProps } from 'formik';
-import { useApolloClient } from 'react-apollo-hooks';
+import { useQuery } from 'react-apollo-hooks';
+import FormControl from '@material-ui/core/FormControl';
+import NativeSelect from '@material-ui/core/NativeSelect';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Input from '@material-ui/core/Input';
+import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/AddRounded';
 
 import { mapMuiFormikdProps } from '../../../lib/muiFormik';
-import MatAutocomplete, { IOption, IMatAutocompleteProps } from '../../common/matAutocomple';
 import { Theme } from '@material-ui/core';
-import { NotebooksByNameResp, NotebooksByNameArgs, notebooksByNameQuery } from '../../../graphql/queries/notebooksByName';
 import { CreateOrUpdatePagePage } from '../../../graphql/mutations/createOrUpdatePage';
-
-type NotebookOption = { name: string };
+import { notebooksQuery, NotebooksResp } from '../../../graphql/queries/notebooks';
+import AddNotebookDialog from '../../notebooks/addNotebookDialog';
 
 const getStyles = (theme: Theme) => {
   return {
@@ -33,6 +36,17 @@ const getStyles = (theme: Theme) => {
       color: '#4caf50',
       position: 'relative' as 'relative',
       top: -1
+    },
+    notebookSelect: {
+      position: 'relative' as 'relative',
+      top: 5
+    },
+    notebookSelectNoValue: {
+      color: 'rgba(0, 0, 0, 0.4)'
+    },
+    dialogContainer: {
+      alignItems: 'baseline',
+      paddingTop: '5vh'
     }
   };
 };
@@ -42,48 +56,24 @@ export interface IPageHeaderSectionProps {
 }
 
 function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
-  const { values, errors, touched, setFieldValue, handleChange } = parentFormBag;
+  const { values, errors, touched, handleChange, setFieldValue } = parentFormBag;
   const classes = makeStyles(getStyles)({});
-  const [isNewNotebook, setIsNewNotebook] = useState(false);
-  const apolloClient = useApolloClient();
+  const { data: { notebooks: serverNotebooks = [] } } = useQuery<NotebooksResp>(notebooksQuery);
+  const [addedNotebooks, setAddedNotebooks] = useState<string[]>([]);
+  const [addingNotebook, setAddingNotebook] = useState(false);
 
-  const notebookSelectOnEnter = useCallback((
-    evt: React.KeyboardEvent<HTMLInputElement>,
-    props: IMatAutocompleteProps<NotebookOption>
-  ) => {
-    // Prevent form submission
-    evt.nativeEvent.stopImmediatePropagation();
-    evt.stopPropagation();
-    evt.preventDefault();
-    let notebookName: string;
+  const allNotebooks = useMemo(() => {
+    return [...serverNotebooks, ...addedNotebooks.map(n => ({ name: n, _id: null }))]
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [serverNotebooks, addedNotebooks]);
 
-    if (!(notebookName = (evt.target as any).value.trim()))
-      return;
-
-    const { options, selectOption, setValue } = props;
-    const targetOption = (options as Array<IOption<NotebookOption>>)
-      .find(opt => (opt.value.name || '').trim().toUpperCase() === notebookName.toUpperCase());
-
-    if (targetOption) {
-      selectOption(targetOption);
-      setIsNewNotebook(false);
-    } else {
-      setValue({ label: notebookName, value: { name: notebookName } });
-      setIsNewNotebook(true);
+  const okAddNotebook = useCallback((newName: string) => {
+    if (newName && newName.length > 1) {
+      setAddedNotebooks(added => [...added, newName]);
+      setFieldValue('notebook', newName);
     }
-  }, []);
 
-  const loadNotebooks = useCallback(async (inputValue) => {
-    const { data: { notebooks = [] } = {} } = await apolloClient.query<NotebooksByNameResp, NotebooksByNameArgs>({
-      query: notebooksByNameQuery,
-      variables: { name: inputValue },
-      fetchPolicy: 'network-only'
-    });
-
-    return notebooks.map(n => ({
-      label: n.name,
-      value: { name: n.name }
-    }));
+    setAddingNotebook(false);
   }, []);
 
   return (
@@ -93,31 +83,32 @@ function PageHeaderSection({ parentFormBag }: IPageHeaderSectionProps) {
           {...mapMuiFormikdProps('title', values, errors, touched)} onChange={handleChange} />
       </div>
       <div className={classes.notebook}>
-        <MatAutocomplete<NotebookOption> placeholder="Notebook"
-          value={values.notebook ? { label: values.notebook, value: { name: values.notebook } } : null}
-          isClearable={true}
-          textFieldProps={{
-            margin: 'dense',
-            fullWidth: true,
-            ...mapMuiFormikdProps('notebook', values, errors, touched),
-            InputProps: {
-              startAdornment: isNewNotebook ?
-                <InputAdornment position="start" className="mr-0">
-                  <NewIcon className={classes.newNotebookIcon} />
-                </InputAdornment> : null
-            }
-          }}
-          onEnter={notebookSelectOnEnter}
-          loadOptions={loadNotebooks}
-          onChange={(notebookOption: any) => {
-            if (!notebookOption || !notebookOption.value) {
-              setIsNewNotebook(false);
-              setFieldValue('notebook', '');
-            } else {
-              setFieldValue('notebook', notebookOption.value.name);
-            }
-          }} />
+        {(() => {
+          const { name, value, error, helperText } = mapMuiFormikdProps("notebook", values, errors, touched);
+          return (
+            <FormControl fullWidth error={error}>
+              {/* <InputLabel htmlFor="notebook">Notebook</InputLabel> */}
+              <NativeSelect value={value} onChange={handleChange} name={name}
+                input={<Input id="notebook" endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setAddingNotebook(true)}>
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                } />}
+                className={classes.notebookSelect} classes={{ root: !value ? classes.notebookSelectNoValue : '' }}>
+                <>
+                  <option value="">Select a notebook...</option>
+                  {allNotebooks.map((n, idx) => (<option key={n._id || idx} value={n.name}>{n.name}</option>))}
+                </>
+              </NativeSelect>
+              <FormHelperText>{helperText}</FormHelperText>
+            </FormControl>
+          );
+        })()}
       </div>
+
+      <AddNotebookDialog open={addingNotebook} onClose={() => setAddingNotebook(false)} onOk={okAddNotebook} />
     </div>
   );
 }

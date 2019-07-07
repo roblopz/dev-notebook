@@ -11,12 +11,15 @@ export interface INote extends IEntity {
   header: string;
   subheader?: string;
   content?: string;
+  plainTextContent?: string;
+  htmlContent?: string;
   snippet?: INoteSnippet;
 }
 
 export interface INoteSnippet {
   language?: string;
   code?: string;
+  htmlCode?: string;
 }
 
 export interface INotebook extends IEntity {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useQuery } from 'react-apollo-hooks';
 import { makeStyles } from '@material-ui/styles';
@@ -8,14 +8,11 @@ import { getAllLanguages, GetAllLanguagesResp } from '../../../graphql/queries/a
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import Paper from '@material-ui/core/Paper';
-import InputBase from '@material-ui/core/InputBase';
-import SearchIcon from '@material-ui/icons/SearchRounded';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import Button from '@material-ui/core/Button';
 
-import { getDrawerTitleStyles, searchInputStyles } from './drawerSearch';
+import { getDrawerTitleStyles } from './drawerSearch';
 import { PageFilters } from '../../../graphql/appState';
 import { sharedStyles } from '../../../styles/shared';
 
@@ -42,7 +39,6 @@ export interface IDrawerLanguagesProps {
 function DrawerLanguages({ pageFilters, setFilters }: IDrawerLanguagesProps) {
   const classes = makeStyles(getStyles)({});
   const { data: { languages = [] } } = useQuery<GetAllLanguagesResp>(getAllLanguages);
-  const [searchVal, setSearchVal] = useState('');
 
   const setLanguageFilter = useCallback(async (language: string) => {
     setFilters({ ...pageFilters, language });

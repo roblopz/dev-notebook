@@ -18,7 +18,6 @@ export const pageFiltersQuery = gql`
         subheader
       }
       tags
-      current
       pageSize
       sortBy
       sortOrder

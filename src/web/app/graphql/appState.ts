@@ -22,7 +22,6 @@ export type PageFilters = {
   sortBy?: 'PageUpdatedAt' | 'PageCreatedAt';
   sortOrder?: 'Ascending' | 'Descending';
   pageSize?: number;
-  current?: number;
 };
 
 export interface IAppState {
@@ -49,7 +48,6 @@ export const initialState: IAppState = {
     language: null,
     notebook: null,
     tags: [],
-    current: 1,
     pageSize: 10,
     sortBy: 'PageUpdatedAt',
     sortOrder: 'Descending'

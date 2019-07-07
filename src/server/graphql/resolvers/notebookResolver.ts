@@ -47,12 +47,17 @@ export class NotebookResolver {
   @Mutation(returns => String)
   public async renameNotebook(@Arg('id') id: string, @Arg('name') name: string): Promise<string> {
     await new Promise((resolve, reject) => {
-      NotebookCollection.update({ _id: id }, { name }, { multi: false }, (err, count) => {
+      NotebookCollection.update({ _id: id }, { name, updatedAt: new Date() }, { multi: false }, (err, count) => {
         err ? reject  (err) : resolve(count);
       });
     });
 
     return 'OK';
+  }
+
+  @Mutation(returns => NotebookType)
+  public async createNotebook(@Arg('name') name: string): Promise<NotebookType> {
+    return await NotebookCollection.insertAsync<INotebook>({ name, createdAt: new Date(), updatedAt: new Date() });
   }
 
   @Mutation(returns => String)
@@ -62,7 +67,7 @@ export class NotebookResolver {
         if (err) reject(err);
 
         PageCollection.remove({ notebook: id }, (err, count) => {
-          return err ? reject(err): resolve(count);
+          return err ? reject(err) : resolve(count);
         });
       });
     });

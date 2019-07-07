@@ -46,11 +46,7 @@ const getStyles = (theme: Theme) => {
   };
 };
 
-export interface INotebooksProps {
-
-}
-
-function Notebooks({ }: INotebooksProps) {
+function Notebooks({ }) {
   const classes = makeStyles(getStyles)({});
   const [renamingNotebook, setRenamingNotebook] = useState<string>(null);
   const [deletingNotebook, setdeletingNotebook] = useState<string>(null);
@@ -60,26 +56,30 @@ function Notebooks({ }: INotebooksProps) {
   const renameNotebook = useMutation<RenameNotebookResp, RenameNotebookInput>(renameNotebookMutation);
   const deleteNotebook = useMutation<DeleteNotebookResp, DeleteNotebookInput>(deleteNotebookMutation);
 
-  const triggerRename = useCallback(async (newName) => {
-    await renameNotebook({
-      variables: { id: renamingNotebook, name: newName },
-      refetchQueries: [{
-        query: notebooksWithDetailsQuery
-      }, {
-        query: notebooksQuery
-      }]
-    });
+  const triggerRename = useCallback(async () => {
+    const sanitizedName = (newNotebookName || '').replace(/[^a-zA-Z0-9\s]/ig, '').replace(/\s{2,}/ig, ' ').trim();
 
-    setRenamingNotebook(null);
-  }, [renamingNotebook]);
+    if (sanitizedName && sanitizedName.length > 1) {
+      await renameNotebook({
+        variables: { id: renamingNotebook, name: sanitizedName },
+        refetchQueries: [{
+          query: notebooksQuery
+        }, {
+          query: notebooksWithDetailsQuery
+        }]
+      });
+    }
+
+    closeRenameModal();
+  }, [newNotebookName]);
 
   const triggerDelete = useCallback(async () => {
     await deleteNotebook({
       variables: { id: deletingNotebook },
       refetchQueries: [{
-        query: notebooksWithDetailsQuery
-      }, {
         query: notebooksQuery
+      }, {
+        query: notebooksWithDetailsQuery
       }]
     });
 
@@ -130,7 +130,7 @@ function Notebooks({ }: INotebooksProps) {
               Rename notebook "{targetRename.name}"
             </DialogContentText>
             <TextField autoFocus margin="dense" label="Name" fullWidth
-              value={newNotebookName || targetRename.name || ''}
+              value={newNotebookName || ''}
               onChange={evt => setNewNotebookName(evt.target.value )} />
           </DialogContent>
           <DialogActions className="pt-0">

@@ -32,6 +32,7 @@ type Mutation {
   deletePage(id: String!): String!
   createOrUpdatePage(id: String, page: CreateOrUpdatePageInput!): PageType
   renameNotebook(name: String!, id: String!): String!
+  createNotebook(name: String!): NotebookType!
   deleteNotebook(id: String!): String!
 }
 
@@ -115,6 +116,12 @@ input PagesInput {
   sortOrder: SortOrder = Descending
 }
 
+type PagesResult {
+  pages: [PageType!]!
+  hasMore: Boolean!
+  current: Float!
+}
+
 type PageType {
   _id: ID!
   title: String!
@@ -127,7 +134,7 @@ type PageType {
 
 type Query {
   page(id: String!): PageType
-  pages(options: PagesInput): [PageType!]
+  pages(options: PagesInput): PagesResult
   notebooks(sort: Int = 1, name: String): [NotebookType!]
   getTag(tag: String!): TagsType
   findTags(options: FindTagsInput): [TagsType!]

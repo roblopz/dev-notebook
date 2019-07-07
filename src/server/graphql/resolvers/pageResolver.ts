@@ -9,6 +9,7 @@ import { PagesInput, SortPagesBy } from "../inputs/pages";
 import { SortOrder } from "../inputs/common";
 import { nameof } from "../../../shared/tsUtil";
 import shortid = require("shortid");
+import { PagesResult } from "../types/pagesResult";
 
 const getSearchRgx = search =>
   search.length < 3 ? new RegExp(`^${search}`, 'i') : new RegExp(`${search}`, 'i');
@@ -18,12 +19,12 @@ export class PageResolver {
   @Query(returns => PageType, { nullable: true })
   public async page(@Arg('id') id: string): Promise<PageType> {
     return await PageCollection.findOneAsync<IPage>({ _id: id });
-  };
+  }
 
-  @Query(returns => [PageType], { nullable: true })
+  @Query(returns => PagesResult, { nullable: true })
   public async pages(
     @Arg('options', { nullable: true }) options: PagesInput = new PagesInput()
-  ): Promise<Array<Omit<PageType, 'notebook'>>> {
+  ): Promise<PagesResult> {
     const query: any = {};
     const sort = {} as any;
 
@@ -69,11 +70,28 @@ export class PageResolver {
     else if (options.sortBy === SortPagesBy.PageUpdatedAt)
       sort.updatedAt = options.sortOrder === SortOrder.Ascending ? 1 : -1;
 
-    return await new Promise<Array<IPage & { _id: string }>>((resolve, reject) => {
-      PageCollection.find<IPage & { _id: string }>(query).sort(sort).skip(options.skip).limit(options.take).exec((err, docs) => {
-        err ? reject(err) : resolve(docs);
+    const res: PageType[] = [];
+    let hasMore = false;
+
+    await new Promise((resolve, reject) => {
+      PageCollection.find<IPage & { _id: string }>(query).sort(sort).skip(options.skip).exec((err, docs) => {
+        if (err) return reject(err);
+
+        for (const page of docs) {
+          if (res.length >= options.take) break;
+          res.push(page);
+        }
+
+        hasMore = docs.length - options.take > 0;
+        return resolve();
       });
     });
+
+    return {
+      pages: res,
+      hasMore,
+      current: options.current
+    };
   }
 
   @FieldResolver(of => PageNotebookType)

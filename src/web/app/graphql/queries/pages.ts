@@ -5,8 +5,12 @@ import { IPage, INote } from "../models";
 
 export const pagesQuery = gql`
   query Pages($options: PagesInput) {
-    pages(options: $options) {
-      ...fullPage
+    result: pages(options: $options) {
+      pages {
+        ...fullPage
+      }
+      hasMore
+      current
     }
   }
   ${pageFragment}
@@ -40,5 +44,9 @@ export type PagesInput = {
 export type PageType = Merge<IPage, { notes: INote[] }>;
 
 export type PagesResp = {
-  pages: PageType[];
+  result: {
+    pages: PageType[];
+    hasMore: boolean;
+    current: number;
+  }
 };

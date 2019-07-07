@@ -178,6 +178,7 @@ function EditingPage({ onGoBack , onSubmit, onSubmitted, page: editingPage }: IE
 
   return (
     <Paper className={classes.root}>
+      {/* tslint:disable-next-line no-empty */}
       <Formik ref={formikRef} initialValues={getInitialValues()} validationSchema={pageValidationSchema} onSubmit={() => {}}>
         {(formikBag) => {
           return (
