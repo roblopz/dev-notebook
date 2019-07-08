@@ -10,6 +10,21 @@ import { init as initServer } from './server';
 let mainWindow: Electron.BrowserWindow;
 let server;
 
+autoUpdater.on('checking-for-update', (...args) => {
+  log.info('checking for update');
+  log.info(args);
+});
+
+autoUpdater.on('checking-for-update', (...args) => {
+  log.info('checking for update');
+  log.info(args);
+});
+
+autoUpdater.on('error', (...args) => {
+  log.info('error');
+  log.info(args);
+});
+
 autoUpdater.on('update-downloaded', (info) => {
   log.info(info);
   log.info('update needed');

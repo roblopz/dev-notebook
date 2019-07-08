@@ -11,7 +11,9 @@
     "build-electron": "npm run pre-build && npm run build-web && tsc --build tsconfig.electron.json",
     "lint:client": "tslint --project tsconfig.client.json",
     "lint:server": "tslint --project tsconfig.server.json",
-    "pack-electron": "NODE_ENV=production npm run build-electron && electron-builder"
+    "pack-electron": "NODE_ENV=production npm run build-electron && electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "release": "build"
   },
   "repository": {
     "type": "github",
@@ -24,7 +26,10 @@
     "productName": "dev-notebooks",
     "files": [
       "./build/**/*"
-    ]
+    ],
+    "publish": {
+      "provider": "github"
+    }
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.19",
