@@ -1,5 +1,3 @@
-process.env.GH_TOKEN = '5545db89e6c5c12633be7fabded57746307c8630';
-
 import url from 'url';
 import { app, BrowserWindow, protocol } from "electron";
 import path from 'path';
