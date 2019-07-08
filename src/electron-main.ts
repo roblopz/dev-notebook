@@ -1,3 +1,5 @@
+process.env.GH_TOKEN = '5545db89e6c5c12633be7fabded57746307c8630';
+
 import url from 'url';
 import { app, BrowserWindow, protocol } from "electron";
 import path from 'path';
@@ -9,6 +11,8 @@ import { init as initServer } from './server';
 
 let mainWindow: Electron.BrowserWindow;
 let server;
+
+autoUpdater.autoDownload = true;
 
 autoUpdater.on('checking-for-update', (...args) => {
   log.info('checking for update');
@@ -29,6 +33,14 @@ autoUpdater.on('update-downloaded', (info) => {
   log.info(info);
   log.info('update needed');
   autoUpdater.quitAndInstall();
+});
+
+autoUpdater.checkForUpdatesAndNotify().then((...args) => {
+  log.info('checandnoti');
+  log.info(args);
+}).catch((err) => {
+  log.info('chec and noty err');
+  log.info(err);
 });
 
 function createWindow() {
