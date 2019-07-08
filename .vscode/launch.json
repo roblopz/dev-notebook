@@ -7,13 +7,28 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Launch Server",
       "program": "${workspaceFolder}/src/server/server.ts",
       "preLaunchTask": "tsc: build - tsconfig.server.json",
       "smartStep": true,
       "internalConsoleOptions": "openOnSessionStart",
       "outFiles": [
-        "${workspaceFolder}/build/server/**/*.js"
+        "${workspaceFolder}/build/app/server/**/*.js"
+      ]
+    },    
+    {
+      "name": "Launch Electron",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/electron-main.ts",
+      "preLaunchTask": "tsc: build - tsconfig.electron.json",
+      "stopOnEntry": false,
+      "args": [], 
+      "cwd": "${workspaceRoot}",
+      // as you have noted, this is also important:
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+      "outFiles": [
+        "${workspaceFolder}/build/**/*.js"
       ]
     }
   ]

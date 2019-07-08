@@ -7,7 +7,7 @@ import { mutationResolvers } from './mutations';
 import { cleanTypenameLink } from "./links/cleanTypename";
 
 export const client = new ApolloClient({
-  link: from([cleanTypenameLink, createHttpLink({ uri: 'http://localhost:4000/graphql' })]),
+  link: from([cleanTypenameLink, createHttpLink({ uri: `http://localhost:${process.env.APP_PORT}/graphql` })]),
   cache,
   resolvers: {
     Query: {},

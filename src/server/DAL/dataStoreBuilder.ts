@@ -1,7 +1,7 @@
 import Datastore, { DataStoreOptions } from 'nedb';
 import util from 'util';
 
-import appSettings from '../appSettings';
+import appSettings from '../../appSettings';
 
 export interface IAsyncDataStore extends Datastore {
   findAsync<T>(query: Partial<{ [K in keyof T]: any }>, projection?: unknown): Promise<[T & { _id: string }]>;
@@ -17,7 +17,7 @@ export interface IAsyncDataStore extends Datastore {
 
 export function BuildDataStore(collection: string, autoload = true) {
   const ds = new Datastore({
-    filename: `${appSettings.PERSISTANCE_FOLTER}/${collection}`,
+    filename: `${appSettings.PERSISTANCE_PATH}/${collection}`,
     autoload,
     compareStrings: (a, b) => (a || '').localeCompare((b || ''))
   } as DataStoreOptions & { compareStrings: (a: string, b: string) => number });

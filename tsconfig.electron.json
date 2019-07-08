@@ -5,6 +5,7 @@
     "outDir": "build",
     "module": "commonjs",
     "target": "es2016",
+    // "lib": ["es2016", "esnext.asynciterable"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
@@ -14,6 +15,6 @@
     "allowJs": true
   },
   "include": [
-    "src/server"    
+    "src/electron-main.ts"
   ]
 }

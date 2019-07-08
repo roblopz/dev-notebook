@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "rootDir": "src",
-    "outDir": "build/client",
+    "outDir": "build",
     "module": "esnext",
     "target": "es5",
     "lib": ["dom", "es6", "es2016"],
@@ -20,10 +20,7 @@
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "config",
-    "src/server"
+  "include": [
+    "src/web"
   ]
 }

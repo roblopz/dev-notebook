@@ -17,10 +17,10 @@ const { parsed: config } = dotenv.config({
 });
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   target: 'web',
   entry: [path.join(appPaths.webBase, 'index.tsx')],
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   output: {
     path: appPaths.webOutput,
     filename: '[name].bundle.js',
@@ -30,23 +30,15 @@ module.exports = {
     modules: [appPaths.node_modules],
     extensions: ['.ts', '.tsx', '.js', '.json', '.jsx'],
     alias: {
-      'react-dom': '@hot-loader/react-dom',
       'roboto-fonts': ''
     },
     plugins: [
       new TsconfigPathsPlugin({ configFile: appPaths.tsConfig })
     ]
   },
-  devServer: {
-    contentBase: appPaths.webBase,
-    port: appSettings.default.WEB_APP_PORT,
-    hot: false,
-    hotOnly: false,
-    historyApiFallback: true
-  },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       'process.env.APP_PORT': JSON.stringify(config.APP_PORT),
     }),
     new HtmlWebpackPlugin({     // Create HTML file that includes references to bundled CSS and JS.
@@ -56,7 +48,7 @@ module.exports = {
       minify: { removeComments: true, collapseWhitespace: true },
       inject: true,
       templateContext: {
-        isDevelopment: true
+        isDevelopment: false
       }
     }),
     new ForkTsCheckerWebpackPlugin({
@@ -69,8 +61,7 @@ module.exports = {
     }),
     new MonacoWebpackPlugin({
       // available options are documented at https://github.com/Microsoft/monaco-editor-webpack-plugin#options      
-    }),
-    new webpack.HotModuleReplacementPlugin()
+    })
   ],
   module: {
     rules: [

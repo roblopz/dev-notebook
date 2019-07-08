@@ -1,15 +1,31 @@
 {
-  "name": "dev-notebook",
+  "name": "dev-notebooks",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "description": "A developer notebooks app",
+  "main": "./build/electron-main.js",
   "scripts": {
-    "start": "node node_modules/.bin/webpack-dev-server --config ./config/webpack.config.dev",
+    "start-web": "node node_modules/.bin/webpack-dev-server --config ./config/webpack.config.dev",
+    "pre-build": "rimraf build && rimraf dist && cpx 'src/!(web)/**/*.!(ts)' build",
+    "build-web": "node ./config/build.js",
+    "build-server": "tsc --build tsconfig.server.json",
+    "build-electron": "npm run pre-build && npm run build-web && tsc --build tsconfig.electron.json",
     "lint:client": "tslint --project tsconfig.client.json",
-    "lint:server": "tslint --project tsconfig.server.json"
+    "lint:server": "tslint --project tsconfig.server.json",
+    "pack-electron": "NODE_ENV=production npm run build-electron && electron-builder"
   },
-  "author": "",
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/roblopz"
+  },
+  "author": "https://github.com/roblopz",
   "license": "ISC",
+  "build": {
+    "appId": "com.dev-notebooks.app",
+    "productName": "dev-notebooks",
+    "files": [
+      "./build/**/*"
+    ]
+  },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.19",
     "@fortawesome/free-solid-svg-icons": "^5.9.0",
@@ -32,11 +48,13 @@
     "draft-js-plugins-editor": "^2.1.1",
     "draft-js-richbuttons-plugin": "^2.2.0",
     "draft-js-styletoprops-plugin": "^1.0.1",
+    "electron-log": "^3.0.6",
     "express": "^4.17.0",
     "formik": "^1.5.7",
     "graphql": "^14.4.1",
     "graphql-tag": "^2.10.1",
     "immutable": "^3.8.2",
+    "jquery": "^3.4.1",
     "lodash.get": "^4.4.2",
     "lodash.merge": "^4.6.1",
     "moment": "^2.24.0",
@@ -87,7 +105,10 @@
     "@types/shortid": "0.0.29",
     "@types/yup": "^0.26.13",
     "babel-loader": "^8.0.5",
+    "cpx": "^1.5.0",
     "css-loader": "^2.1.1",
+    "electron": "^5.0.6",
+    "electron-builder": "^20.44.4",
     "faker": "^4.1.0",
     "file-loader": "^3.0.1",
     "fork-ts-checker-webpack-plugin": "^1.0.2",
@@ -101,6 +122,7 @@
     "postcss-loader": "^3.0.0",
     "react-inspector": "^3.0.2",
     "resolve-url-loader": "^3.1.0",
+    "rimraf": "^2.6.3",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "tsconfig-paths-webpack-plugin": "^3.2.0",
@@ -111,6 +133,7 @@
     "url-loader": "^1.1.2",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.3.1"
+    "webpack-dev-server": "^3.3.1",
+    "webpack-target-electron-renderer": "^0.4.0"
   }
 }
