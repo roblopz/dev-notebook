@@ -1,6 +1,7 @@
 import url from 'url';
 import { app, BrowserWindow, protocol } from "electron";
 import path from 'path';
+import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 
 import appSettings from './appSettings';
@@ -8,6 +9,12 @@ import { init as initServer } from './server';
 
 let mainWindow: Electron.BrowserWindow;
 let server;
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info(info);
+  log.info('update needed');
+  autoUpdater.quitAndInstall();
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
