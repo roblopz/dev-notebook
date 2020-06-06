@@ -41,7 +41,7 @@
     "apollo-cache-inmemory": "^1.6.2",
     "apollo-client": "^2.6.3",
     "apollo-link-http": "^1.5.15",
-    "apollo-server": "^2.7.0-alpha.3",
+    "apollo-server": "^2.14.2",
     "apollo-server-express": "^2.7.0-alpha.3",
     "autoprefixer": "^9.5.1",
     "bootstrap": "^4.3.1",
